@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { View, Button, TextInput, ScrollView, StyleSheet } from "react-native";
+import { Switch } from 'react-native-paper';
 import firebase from "../database/firebase";
-import DatePicker from "@dietime/react-native-date-picker";
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+
 
 const createActuacion = (props) => {
 
@@ -9,10 +12,10 @@ const createActuacion = (props) => {
 
     const [state, setState] = useState({
         concepto: '',
-        fecha: '',
+        fecha: date,
         idActuacion: '',
         idRepertorio: '',
-        isLive: true,
+        isLive: '',
         organizador: '',
         tipo: '',
         ubicacion: ''
@@ -23,19 +26,32 @@ const createActuacion = (props) => {
         console.log(state)
     }
 
-    const addNewActuacion = async () => {
-        for (const item of state) {
-            console.log(item)
-        }
+    const handleSetDate = (date) => {
+        setDate(date)
+        console.log(date);
+        console.log(state);
+    }
+
+    const saveProcesion = async () => {
+        console.log(state);
     }
 
     return (
         <ScrollView style={styles.container}>
             <View style={styles.inputGroup}>
-                <TextInput placeholder={"Concepto"} onChangeText={(value) => handleChangeText('name', value)}/>
+                <TextInput placeholder={"Concepto"} onChangeText={(value) => handleChangeText('concepto', value)}/>
             </View>
             <View style={styles.inputGroup}>
-                <DatePicker value={date} onChange={(value => setDate(value))} format={"dd-mm-yyyy"} />
+                <DatePicker selected={date} onChange={(date) => handleSetDate(date)} showTimeSelect dateFormat="Pp"/>
+            </View>
+            <View style={styles.container}>
+                <Switch />
+            </View>
+            <View>
+
+            </View>
+            <View>
+                <Button title='Guardar procesión' onPress={() => saveProcesion()} />
             </View>
         </ScrollView>
     )
@@ -53,7 +69,8 @@ const styles = StyleSheet.create({
         padding: 0,
         marginBottom: 15,
         borderBottomWidth: 1,
-        borderBottomColor: '#cccccc'
+        borderBottomColor: '#cccccc',
+        zIndex: 1
     }
 })
 
