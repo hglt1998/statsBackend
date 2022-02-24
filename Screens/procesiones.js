@@ -1,13 +1,23 @@
-import React, {useState, useEffect} from "react";
-import {View, TextInput, ScrollView, Button, Text} from 'react-native';
+import React, {useState, useEffect, useCallback} from "react";
+import {View, TextInput, ScrollView, Button, Text, RefreshControl} from 'react-native';
 import firebase from "../database/firebase";
 import {Avatar, ListItem} from "react-native-elements";
 
+const wait = (timeout) => {
+    return new Promise(resolve => setTimeout(resolve, timeout))
+}
+
 const events = (props) => {
 
+    const [refreshing, setRefreshing] = useState(false);
     const [events, setEvents] = useState([]);
 
-    useEffect(() => {
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+
+    }, [])
+
+    const loadData = () => {
         firebase.db.collection("actuaciones").get().then((querySnapshot) => {
             const events = [];
 
@@ -17,39 +27,54 @@ const events = (props) => {
                 events.push({
                     id: info.idActuacion,
                     concepto: info.concepto,
-                    organizador: info.organizador,
+                    organizador1: info.organizador1,
                     fecha: info.fecha
                 })
             })
             setEvents(events)
         })
+    }
+
+    useEffect(() => {
+        loadData();
     }, [])
 
     return (
-        <ScrollView>
+        <ScrollView
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={loadData}
+                />
+            }
+        >
             <Button
-                title={"Crear procesión"}
-                onPress={() => props.navigation.navigate("createActuacion")} />
+                title={"Crear actuación"}
+                onPress={() => props.navigation.navigate("createActuacion")}/>
 
             {
                 events.map(evento => {
                     console.log(evento)
+                    const formatedDate = new Date(evento.fecha.seconds * 1000).toLocaleString().toString()
+                    console.log(formatedDate)
                     return (
                         <ListItem
-                        key={evento.id} bottomDivider onPress={() => {
+                            key={evento.id} bottomDivider onPress={() => {
                             props.navigation.navigate('eventDetail', {
                                 eventID: evento.id
                             })
                         }}
                         >
                             <ListItem.Chevron/>
-                            <Avatar source={{uri: "https://municipaldemairena.com/wp-content/uploads/2020/10/ColorSinFondo-e1602318863442.png",}} rounded />
+                            <Avatar
+                                source={{uri: "https://municipaldemairena.com/wp-content/uploads/2020/10/ColorSinFondo-e1602318863442.png",}}
+                                rounded/>
                             <ListItem.Content>
                                 <ListItem.Title>{evento.concepto}</ListItem.Title>
-                                <ListItem.Subtitle>{evento.organizador}</ListItem.Subtitle>
+                                <ListItem.Subtitle>{evento.organizador1}</ListItem.Subtitle>
                                 <ListItem.Content>
                                     <Text>
-                                        {evento.fecha}
+                                        {formatedDate}
                                     </Text>
                                 </ListItem.Content>
                             </ListItem.Content>
