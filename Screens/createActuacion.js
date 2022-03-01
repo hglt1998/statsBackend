@@ -10,7 +10,6 @@ const createActuacion = (props) => {
 
     const database = getDatabase()
     const [date] = useState(new Date())
-    const [organizadores, setOrganizadores] = useState([])
     const [isLive, setIsLive] = useState(false);
 
     const [state, setState] = useState({
@@ -22,66 +21,48 @@ const createActuacion = (props) => {
         organizador1: '',
         organizador2: '',
         tipoActuacion: '',
-        ubicacion: ''
+        ubicacion: '',
+        ciudad: ''
     });
 
     const handleChangeText = (name, value) => {
         setState({...state, [name]: value})
     }
 
-
-    useEffect(() => {
-        firebase.db.collection('organizadores').onSnapshot(querySnapshot => {
-            const organizadores = []
-
-            console.log(querySnapshot.docs.length)
-
-            try {
-
-            handleChangeText('idActuacion', querySnapshot.docs.length)
-            handleChangeText('idRepertorio', querySnapshot.docs.length)
-            } catch (e) {
-                console.log(e.message())
-            }
-
-            console.log('ESTADO: ', state)
-            querySnapshot.docs.forEach(doc => {
-                const {nombre, nombreCorto} = doc.data()
-                organizadores.push({
-                    nombre,
-                    nombreCorto
-                })
-            });
-
-            setOrganizadores(organizadores)
-        })
-    }, [])
-
     const saveActuacion = async () => {
         if (state.concepto === '' || state.organizador1 === '' || state.tipoActuacion === '' || state.ubicacion === "") {
             alert('Hay campos sin rellenar')
         } else {
             try {
-                await firebase.db.collection('actuaciones').add({
+                const actuacion = await firebase.db.collection('actuaciones').add({
+                    data: null
+                })
+
+                const id = actuacion.id;
+
+                await firebase.db.collection('actuaciones').doc(actuacion.id).set({
+                    idRepertorio: id,
+                    idActuacion: id,
                     concepto: state.concepto,
                     fecha: new Date(state.fecha),
-                    idActuacion: state.idRepertorio,
-                    idRepertorio: state.idRepertorio,
                     isLive: state.isLive,
                     organizador1: state.organizador1,
                     organizador2: state.organizador2,
                     tipo: state.tipoActuacion,
-                    ubicacion: state.ubicacion
+                    ubicacion: state.ubicacion,
+                    ciudad: state.ciudad
                 })
 
-                await set(ref(database, 'repertorios/' + state.idRepertorio), {
+                await set(ref(database, 'repertorios/' + id), {
                     marcha: 'calle'
                 })
+
+                setState({...state, 'idRepertorio': id})
+                await props.navigation.navigate('actuacionDetail', {eventoId: id})
             } catch (error) {
                 console.log(error)
             }
         }
-        await props.navigation.navigate('actuacionDetail', {id: state.idRepertorio})
         console.log(state)
     }
 
@@ -106,6 +87,9 @@ const createActuacion = (props) => {
             </View>
             <View style={styles.inputGroup}>
                 <TextInput placeholder={"Ubicación"} onChangeText={(value) => handleChangeText('ubicacion', value)}/>
+            </View>
+            <View style={styles.inputGroup}>
+                <TextInput placeholder={"Ciudad"} onChangeText={(value) => handleChangeText('ciudad', value)}/>
             </View>
 
             <View style={styles.inputGroup}>

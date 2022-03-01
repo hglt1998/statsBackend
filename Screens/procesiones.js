@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useCallback} from "react";
 import {View, TextInput, ScrollView, Button, Text, RefreshControl} from 'react-native';
 import firebase from "../database/firebase";
-import {Avatar, ListItem} from "react-native-elements";
+import {Avatar, ButtonGroup, ListItem} from "react-native-elements";
 
 const wait = (timeout) => {
     return new Promise(resolve => setTimeout(resolve, timeout))
@@ -18,11 +18,12 @@ const events = (props) => {
     }, [])
 
     const loadData = () => {
-        firebase.db.collection("actuaciones").get().then((querySnapshot) => {
+        firebase.db.collection("actuaciones").orderBy("fecha", "desc").get().then((querySnapshot) => {
             const events = [];
 
             querySnapshot.forEach((doc) => {
                 const info = doc.data();
+                console.log(doc)
 
                 events.push({
                     id: info.idActuacion,
@@ -54,14 +55,13 @@ const events = (props) => {
 
             {
                 events.map(evento => {
-                    console.log(evento)
                     const formatedDate = new Date(evento.fecha.seconds * 1000).toLocaleString().toString()
-                    console.log(formatedDate)
+                    console.log(evento)
                     return (
                         <ListItem
                             key={evento.id} bottomDivider onPress={() => {
-                            props.navigation.navigate('eventDetail', {
-                                eventID: evento.id
+                            props.navigation.navigate('actuacionDetail', {
+                                eventoId: evento.id
                             })
                         }}
                         >
