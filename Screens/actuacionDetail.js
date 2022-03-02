@@ -1,9 +1,11 @@
-import React, {useEffect, useState} from 'react'
-import {Button, ScrollView, Text, View, StyleSheet, Switch} from "react-native";
+import React, { useEffect, useState } from 'react'
+import { Button, ScrollView, Text, View, StyleSheet, Switch, TextInput } from "react-native";
 import firebase from "../database/firebase";
 
 const actuacionDetail = (props) => {
     const idActuacion = props.route.params.eventoId;
+
+    const [nuevaMarcha, setNuevaMarcha] = useState()
 
     const initialState = {
         concepto: '',
@@ -25,11 +27,11 @@ const actuacionDetail = (props) => {
     }
 
     const handleChangeText = (name, value) => {
-        setActuacion({...actuacion, [name]: value})
+        setActuacion({ ...actuacion, [name]: value })
     }
 
     useEffect(() => {
-        getActuacionByID(props.route.params.eventoId).then(r => console.log(r));
+        getActuacionByID(props.route.params.eventoId);
         console.log(props.route.params.eventoId)
     }, [])
 
@@ -46,6 +48,10 @@ const actuacionDetail = (props) => {
         return doc.data()
     }
 
+    const handlerAddComposition = () => {
+        console.log(nuevaMarcha);
+    }
+
     const handleToggleSwitch = async (value) => {
         const dbRef = firebase.db.collection('actuaciones').doc(idActuacion);
         const doc = await dbRef.get()
@@ -59,22 +65,32 @@ const actuacionDetail = (props) => {
 
     return (
         <ScrollView style={styles.container}>
-            <View>
-                <Switch
-                    trackColor={{false: "#767577", true: "#81b0ff"}}
-                    thumbColor={actuacion.isLive ? "#f5dd4b" : "#f4f3f4"}
-                    ios_backgroundColor="#3e3e3e"
-                    onValueChange={value => handleToggleSwitch(value)}
-                    value={actuacion.isLive}
-                />
-            </View>
-            <View style={styles.text}>
+            <View style={styles.topInfo}>
+                <View style={styles.switch}>
+                    <Text>En directo</Text>
+                    <Switch
+                        trackColor={{ false: "#767577", true: "#81b0ff" }}
+                        thumbColor={actuacion.isLive ? "#f5dd4b" : "#f4f3f4"}
+                        ios_backgroundColor="#3e3e3e"
+                        onValueChange={value => handleToggleSwitch(value)}
+                        value={actuacion.isLive}
+                    />
+                </View>
                 <Text>{actuacion.concepto}</Text>
                 <Text>{actuacion.organizador1}</Text>
                 <Text>{new Date(actuacion.fecha.seconds * 1000).toLocaleString().toString()}</Text>
             </View>
+            <View>
+                <View style={styles.inputs}>
+                    <TextInput placeholder='Nº de composición' onChangeText={value => setNuevaMarcha(value)} value={nuevaMarcha} />
+                    <Button title='Añadir composición' onPress={() => {
+                        handlerAddComposition()
+                        setNuevaMarcha('')
+                    }} />
+                </View>
+            </View>
 
-            <Button title={'Home'} onPress={handleHome}/>
+            <Button title={'Home'} onPress={handleHome} />
         </ScrollView>
     )
 
@@ -91,6 +107,26 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         borderBottomWidth: 1,
         borderBottomColor: "#cccccc",
+    },
+    topInfo: {
+        flexDirection: 'row',
+        padding: 5,
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        fontWeight: 'bold',
+        fontSize: 11
+    },
+    switch: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        color: 'red'
+    },
+    inputs: {
+        flexDirection: 'row',
+        alignContent: 'center',
+        padding: 10,
+        alignItems: 'center'
     }
 })
 

@@ -23,7 +23,7 @@ const events = (props) => {
 
             querySnapshot.forEach((doc) => {
                 const info = doc.data();
-                console.log(doc)
+                
 
                 events.push({
                     id: info.idActuacion,
@@ -52,11 +52,13 @@ const events = (props) => {
             <Button
                 title={"Crear actuación"}
                 onPress={() => props.navigation.navigate("createActuacion")}/>
+            <Button
+                title={"Crear composición"}
+                onPress={() => props.navigation.navigate("createComposicion")}/>
 
             {
                 events.map(evento => {
                     const formatedDate = new Date(evento.fecha.seconds * 1000).toLocaleString().toString()
-                    console.log(evento)
                     return (
                         <ListItem
                             key={evento.id} bottomDivider onPress={() => {
