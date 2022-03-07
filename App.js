@@ -21,8 +21,6 @@ function MyStack() {
             <Stack.Screen name="actuacionDetail" component={actuacionDetail} options={{title: 'Actuación'}}/>
             <Stack.Screen name="createActuacion" component={createActuacion} options={{title: 'Nueva Actuación'}}/>
             <Stack.Screen name="createComposicion" component={createComposicion} options={{title: 'Crear composición'}}/>
-            <Stack.Screen name="createUser" component={createUser} options={{title: 'User creation'}}/>
-            <Stack.Screen name="userDetail" component={userDetail} options={{title: 'User detail'}}/>
         </Stack.Navigator>
     )
 }
