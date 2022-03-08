@@ -40,6 +40,8 @@ const actuacionDetail = (props) => {
 
   const [actuacion, setActuacion] = useState(initialState);
 
+  const [repertorios, setRepertorios] = useState([])
+
   // ----------------------------- USEEFFECT -----------------------------
   useEffect(() => {
 
@@ -71,7 +73,7 @@ const actuacionDetail = (props) => {
   };
 
   const handleCheck = () => {
-    console.log(localizacion);
+    console.log(repertorios); 
   };
 
   const addInterpretacion = async () => {
@@ -154,7 +156,9 @@ const actuacionDetail = (props) => {
     const repertorioRef = ref(db, 'repertorios/' + idActuacion);
     onValue(repertorioRef, (snapshot) => {
       const data = snapshot.val()
+      repertorios.push(data)
       console.log(data);
+      console.log('setRepertorios: ', repertorios);
     })
   }
 
