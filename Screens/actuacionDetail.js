@@ -1,6 +1,7 @@
 import { getDatabase, onValue, ref, set } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
+import { DataTable } from 'react-native-paper'
 import {
   Button,
   ScrollView,
@@ -9,6 +10,7 @@ import {
   StyleSheet,
   Switch,
   TextInput,
+  
 } from "react-native";
 import firebase from "../database/firebase";
 
@@ -16,7 +18,7 @@ import Geocode from "react-geocode";
 
 import * as Location from "expo-location";
 
-import cryptoRandomString from 'crypto-random-string'
+const optionsPerPage = [5, 10, 15];
 
 const actuacionDetail = (props) => {
 
@@ -42,12 +44,20 @@ const actuacionDetail = (props) => {
 
   const [repertorios, setRepertorios] = useState([])
 
+  const [page, setPage] = useState(0)
+
+  const [itemsPerPage, setItemsPerPage] = useState(optionsPerPage[0])
+
   // ----------------------------- USEEFFECT -----------------------------
   useEffect(() => {
 
     getActuacionByID(props.route.params.eventoId);
     loadData()
   }, []);
+
+  useEffect(() => {
+    setPage(0)
+  }, [itemsPerPage])
 
 
   // ----------------------------- HANDLERS -----------------------------
@@ -84,7 +94,7 @@ const actuacionDetail = (props) => {
     Geocode.setLocationType("ROOFTOP");
     const db = getDatabase();
 
-    const id = self.crypto.randomUUID();
+    const id = Math.random().toString(16).substring(2, 8);
 
     Location.installWebGeolocationPolyfill();
 
@@ -156,9 +166,8 @@ const actuacionDetail = (props) => {
     const repertorioRef = ref(db, 'repertorios/' + idActuacion);
     onValue(repertorioRef, (snapshot) => {
       const data = snapshot.val()
-      repertorios.push(data)
-      console.log(data);
-      console.log('setRepertorios: ', repertorios);
+      setRepertorios(data)
+      console.log('setRepertorios: ', data);
     })
   }
 
@@ -200,6 +209,28 @@ const actuacionDetail = (props) => {
           />
         </View>
       </View>
+      <DataTable title="Tabla">
+        <DataTable.Header>
+          <DataTable.Title>Nombre</DataTable.Title>
+          <DataTable.Title>Compositor</DataTable.Title>
+          <DataTable.Title>Ubicación</DataTable.Title>
+          <DataTable.Title>Hora</DataTable.Title>
+        </DataTable.Header>
+        {
+          
+        }
+        <DataTable.Pagination
+          page={page}
+          numberOfPages={3}
+          onPageChange={(page) => setPage(page)}
+          label="1-2 of 6"
+          optionsPerPage={optionsPerPage}
+          itemsPerPage={itemsPerPage}
+          setItemsPerPage={setItemsPerPage}
+          showFastPagination
+          optionsLabel={'Filas por página'} 
+        />
+      </DataTable>
 
       <Button title={"Home"} onPress={handleHome} />
       <Button title={"Check"} onPress={handleCheck} />
