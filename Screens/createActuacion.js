@@ -54,7 +54,7 @@ const createActuacion = (props) => {
                 })
 
                 await set(ref(database, 'repertorios/' + id), {
-                    marcha: 'calle'
+                    
                 })
 
                 setState({...state, 'idRepertorio': id})

@@ -1,7 +1,7 @@
-import { getDatabase, onValue, ref, set } from "firebase/database";
+import { getDatabase, onValue, ref, set, remove } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
-import { DataTable } from 'react-native-paper'
+import { DataTable, IconButton } from "react-native-paper";
 import {
   Button,
   ScrollView,
@@ -10,7 +10,6 @@ import {
   StyleSheet,
   Switch,
   TextInput,
-  
 } from "react-native";
 import firebase from "../database/firebase";
 
@@ -18,10 +17,7 @@ import Geocode from "react-geocode";
 
 import * as Location from "expo-location";
 
-const optionsPerPage = [5, 10, 15];
-
 const actuacionDetail = (props) => {
-
   // ----------------------------- STATES -----------------------------
   const initialState = {
     concepto: "",
@@ -38,27 +34,19 @@ const actuacionDetail = (props) => {
 
   const idActuacion = props.route.params.eventoId;
 
-  const [interpretacion, setNuevaInterpretacion] = useState('');
+  const [interpretacion, setNuevaInterpretacion] = useState("");
 
   const [actuacion, setActuacion] = useState(initialState);
 
-  const [repertorios, setRepertorios] = useState([])
+  const [repertorios, setRepertorios] = useState([]);
 
-  const [page, setPage] = useState(0)
-
-  const [itemsPerPage, setItemsPerPage] = useState(optionsPerPage[0])
+  const [composicion, setComposicion] = useState([])
 
   // ----------------------------- USEEFFECT -----------------------------
   useEffect(() => {
-
     getActuacionByID(props.route.params.eventoId);
-    loadData()
+    loadData();
   }, []);
-
-  useEffect(() => {
-    setPage(0)
-  }, [itemsPerPage])
-
 
   // ----------------------------- HANDLERS -----------------------------
 
@@ -69,7 +57,6 @@ const actuacionDetail = (props) => {
   const handleChangeText = (name, value) => {
     setActuacion({ ...actuacion, [name]: value });
   };
-
 
   const handleToggleSwitch = async (value) => {
     const dbRef = firebase.db.collection("actuaciones").doc(idActuacion);
@@ -82,8 +69,24 @@ const actuacionDetail = (props) => {
     handleChangeText("isLive", value);
   };
 
-  const handleCheck = () => {
-    console.log(repertorios); 
+  const handleDelete = (id) => {
+    const db = getDatabase();
+    set(ref(db, "repertorios/" + idActuacion + "/" + id), null);
+  };
+
+  const generateID = () => {
+    const newDate = new Date();
+    const date = newDate
+      .toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+      .replace(/[^0-9]/g, "");
+
+    const time = newDate.getTime().toString();
+
+    return date + time;
   };
 
   const addInterpretacion = async () => {
@@ -94,8 +97,8 @@ const actuacionDetail = (props) => {
     Geocode.setLocationType("ROOFTOP");
     const db = getDatabase();
 
-    const id = Math.random().toString(16).substring(2, 8);
-
+    const id = generateID();
+    
     Location.installWebGeolocationPolyfill();
 
     navigator.geolocation.getCurrentPosition((position) => {
@@ -103,29 +106,37 @@ const actuacionDetail = (props) => {
         position.coords.latitude,
         position.coords.longitude
       ).then((response) => {
-        const time = new Date().toLocaleString().toString();
+        const ubi = new String(response.results[0].formatted_address);
+        const time = new Date().toLocaleString();
+        const newUbi = ubi.substring(0, ubi.indexOf(","));
         if (Platform.OS === "web") {
           const newLocation = window.prompt(
             "Introduzca la localización:",
             "Localización"
           );
+          getDatosComposicion(interpretacion)
+          console.log(composicion);
           set(ref(db, "repertorios/" + idActuacion + "/" + id), {
             nMarcha: interpretacion,
             ubicacion: newLocation,
             time: time,
+            idInterpretacion: id,
+            tituloMarcha: composicion.titulo
           });
+          
         } else {
           Alert.prompt(
             "Localización",
-            `Confirme ${response.results[0].formatted_address} como la localización correcta. Introduzca la dirección en caso de localización incorrecta.`,
+            `Confirme ${newUbi} como la localización correcta. Introduzca la dirección en caso de localización incorrecta.`,
             [
               {
                 text: "Correcta",
                 onPress: () =>
                   set(ref(db, "repertorios/" + idActuacion + "/" + id), {
                     nMarcha: interpretacion,
-                    ubicacion: response.results[0].formatted_address,
+                    ubicacion: newUbi,
                     time: time,
+                    idInterpretacion: id,
                   }),
               },
               {
@@ -135,6 +146,7 @@ const actuacionDetail = (props) => {
                     nMarcha: interpretacion,
                     ubicacion: texto,
                     time: time,
+                    idInterpretacion: id,
                   });
                 },
               },
@@ -162,14 +174,24 @@ const actuacionDetail = (props) => {
   };
 
   const loadData = () => {
-    const db = getDatabase()
-    const repertorioRef = ref(db, 'repertorios/' + idActuacion);
+    //GET REPERTORIOS
+    const db = getDatabase();
+    const repertorioRef = ref(db, "repertorios/" + idActuacion);
     onValue(repertorioRef, (snapshot) => {
-      const data = snapshot.val()
-      setRepertorios(data)
-      console.log('setRepertorios: ', data);
-    })
-  }
+      const data = snapshot.val();
+      if (data) {
+        setRepertorios(Object.values(data));
+      }
+    });
+  };
+
+  const getDatosComposicion = async (nMarcha) => {
+    const doc = firebase.db.collection("composiciones").doc("virgenDelasAguas");
+    doc.get().then((info) => {
+      console.log(info.data());
+      setComposicion(info.data())
+    });
+  };
 
   // ----------------------------- VIEW -----------------------------
 
@@ -182,7 +204,7 @@ const actuacionDetail = (props) => {
             trackColor={{ false: "#767577", true: "#FF0000" }}
             thumbColor={actuacion.isLive ? "#FFFFFF" : "#f4f3f4"}
             ios_backgroundColor="#3e3e3e"
-            onValueChange={value => handleToggleSwitch(value)}
+            onValueChange={(value) => handleToggleSwitch(value)}
             value={actuacion.isLive}
           />
         </View>
@@ -197,7 +219,8 @@ const actuacionDetail = (props) => {
           <TextInput
             keyboardType="numeric"
             placeholder="Nº de composición"
-            onChangeText={(value) => setNuevaInterpretacion(value)}
+            onChangeText={(value) => {setNuevaInterpretacion(value)
+               getDatosComposicion(value)}}
             value={interpretacion}
           />
           <Button
@@ -209,31 +232,42 @@ const actuacionDetail = (props) => {
           />
         </View>
       </View>
-      <DataTable title="Tabla">
-        <DataTable.Header>
-          <DataTable.Title>Nombre</DataTable.Title>
-          <DataTable.Title>Compositor</DataTable.Title>
-          <DataTable.Title>Ubicación</DataTable.Title>
-          <DataTable.Title>Hora</DataTable.Title>
-        </DataTable.Header>
-        {
-          
-        }
-        <DataTable.Pagination
-          page={page}
-          numberOfPages={3}
-          onPageChange={(page) => setPage(page)}
-          label="1-2 of 6"
-          optionsPerPage={optionsPerPage}
-          itemsPerPage={itemsPerPage}
-          setItemsPerPage={setItemsPerPage}
-          showFastPagination
-          optionsLabel={'Filas por página'} 
-        />
-      </DataTable>
+      {repertorios.length == 0 ? (
+        <Text>No Data</Text>
+      ) : (
+        <DataTable title="Tabla">
+          <DataTable.Header>
+            <DataTable.Title>Nº</DataTable.Title>
+            <DataTable.Title numeric>Ubicación</DataTable.Title>
+            <DataTable.Title numeric>Hora</DataTable.Title>
+            <DataTable.Title numeric>Actions</DataTable.Title>
+          </DataTable.Header>
+          {repertorios.map((repertorio) => {
+            const time = String(repertorio.time);
+            return (
+              <DataTable.Row key={repertorio.time}>
+                <DataTable.Cell>{repertorio.nMarcha}</DataTable.Cell>
+                <DataTable.Cell numeric>{repertorio.ubicacion}</DataTable.Cell>
+                {/* <DataTable.Cell numeric>{`${new Date(repertorio.time)
+                  .getHours()}:${String(new Date(repertorio.time)
+                    .getMinutes())
+                  }`}</DataTable.Cell> */}
+                <DataTable.Cell numeric>
+                  {time.substring(time.indexOf(",") + 2, time.length)}
+                </DataTable.Cell>
+                <DataTable.Cell numeric>
+                  <IconButton
+                    icon="delete"
+                    onPress={() => handleDelete(repertorio.idInterpretacion)}
+                  />
+                </DataTable.Cell>
+              </DataTable.Row>
+            );
+          })}
+        </DataTable>
+      )}
 
       <Button title={"Home"} onPress={handleHome} />
-      <Button title={"Check"} onPress={handleCheck} />
     </ScrollView>
   );
 };
@@ -274,6 +308,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginVertical: 10,
     borderRadius: 10,
+  },
+  tableHead: {
+    padding: 15,
   },
 });
 

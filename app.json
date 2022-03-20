@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "bmm-estadisticas",
-    "slug": "bmm-estadisticas",
+    "name": "BMMSTATS",
+    "slug": "bmmstats",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/ColorSinFondo.png",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/ColorSinFondo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
