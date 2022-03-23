@@ -185,13 +185,20 @@ const actuacionDetail = (props) => {
     });
   };
 
-  const getDatosComposicion = async (nMarcha) => {
+  const getDatosComposicion = (nMarcha) => {
     const doc = firebase.db.collection("composiciones").doc("virgenDelasAguas");
     doc.get().then((info) => {
       console.log(info.data());
       setComposicion(info.data())
     });
   };
+
+  const getMarchas = () => {
+    const doc = firebase.db.collection("composiciones").doc("001");
+    doc.get().then((info) => {
+      console.log(info.data());
+    })
+  }
 
   // ----------------------------- VIEW -----------------------------
 
@@ -230,6 +237,7 @@ const actuacionDetail = (props) => {
               setNuevaInterpretacion("");
             }}
           />
+          <Button title="Check getMarchas" onPress={() => getMarchas()} />
         </View>
       </View>
       {repertorios.length == 0 ? (
