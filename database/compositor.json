@@ -19,7 +19,6 @@
 {"idCompositor":"14","anoNacimiento":"1890","anoDefuncion":"1946","nombre":"Manuel","apellidos":"Ruiz Vidriet"},
 {"idCompositor":"15","anoNacimiento":"1960","anoDefuncion":"0","nombre":"Ángel Alcaide","apellidos":"Barroso Vázquez"},
 {"idCompositor":"16","anoNacimiento":"1947","anoDefuncion":"2019","nombre":"Francisco","apellidos":"Grau Vergara"},
-
 {"idCompositor":"17","anoNacimiento":"1839","anoDefuncion":"1898","nombre":"José","apellidos":"Font Marimont"},
 {"idCompositor":"18","anoNacimiento":"1870","anoDefuncion":"1956","nombre":"Vicente","apellidos":"Gómez-Zarzuela Pérez"},
 {"idCompositor":"19","anoNacimiento":"1929","anoDefuncion":"2010","nombre":"José","apellidos":"De la Vega Sánchez"},
@@ -43,13 +42,13 @@
 {"idCompositor":"37","anoNacimiento":"1906","anoDefuncion":"1984","nombre":"José","apellidos":"Gardey Cuevas"},
 {"idCompositor":"38","anoNacimiento":"0","anoDefuncion":"1922","nombre":"José","apellidos":"Blanco"},
 {"idCompositor":"39","anoNacimiento":"1986","anoDefuncion":"0","nombre":"Claudio","apellidos":"Gómez Calado"},
-{"idCompositor":"40","anoNacimiento":"1882","anoDefuncion":"1949","nombre":"Joaquín","apellidos":"Turina Pérez"},
+{"idCompositor":"40","anoNacimiento":"183","anoDefuncion":"1949","nombre":"Joaquín","apellidos":"Turina Pérez"},
 {"idCompositor":"41","anoNacimiento":"1981","anoDefuncion":"0","nombre":"Óscar","apellidos":"Navarro González"},
 {"idCompositor":"42","anoNacimiento":"1981","anoDefuncion":"0","nombre":"Víctor Manuel","apellidos":"Ferrer Castillo"},
 {"idCompositor":"43","anoNacimiento":"1984","anoDefuncion":"0","nombre":"Alfonso","apellidos":"Lozano Ruiz"},
 {"idCompositor":"44","anoNacimiento":"1862","anoDefuncion":"1943","nombre":"Manuel","apellidos":"Font Fernández de la Herranz"},
 {"idCompositor":"45","anoNacimiento":"1994","anoDefuncion":"0","nombre":"Antonio David","apellidos":"Rodríguez Gómez"},
-{"idCompositor":"46","anoNacimiento":"1882","anoDefuncion":"1968","nombre":"Germán","apellidos":"Álvarez Beigbeder"},
+{"idCompositor":"46","anoNacimiento":"183","anoDefuncion":"1968","nombre":"Germán","apellidos":"Álvarez Beigbeder"},
 {"idCompositor":"47","anoNacimiento":"1843","anoDefuncion":"1907","nombre":"Edvar","apellidos":"Grieg"},
 {"idCompositor":"48","anoNacimiento":"1810","anoDefuncion":"1849","nombre":"Fryderyk Franciszek","apellidos":"Chopin"},
 {"idCompositor":"49","anoNacimiento":"1978","anoDefuncion":"0","nombre":"José","apellidos":"Peña Rubio"},
@@ -84,6 +83,7 @@
 {"idCompositor":"78","anoNacimiento":"1978","anoDefuncion":"0","nombre":"Germán","apellidos":"García González"},
 {"idCompositor":"79","anoNacimiento":"1981","anoDefuncion":"0","nombre":"Antonio","apellidos":"Moreno Pozo"},
 {"idCompositor":"80","anoNacimiento":"1947","anoDefuncion":"2019","nombre":"Francisco","apellidos":"Grau Vergara"},
+
 {"idCompositor":"81","anoNacimiento":"0","anoDefuncion":"0","nombre":"José Carlos","apellidos":"Archilla Luque"}
 ]
 }
