@@ -13,6 +13,7 @@ import actuaciones from './Screens/procesiones'
 import createActuacion from "./Screens/createActuacion";
 import actuacionDetail from "./Screens/actuacionDetail"
 import createComposicion from './Screens/createComposicion';
+import createCompositor from './Screens/createCompositor';
 
 function MyStack() {
     return (
@@ -21,6 +22,7 @@ function MyStack() {
             <Stack.Screen name="actuacionDetail" component={actuacionDetail} options={{title: 'Actuación'}}/>
             <Stack.Screen name="createActuacion" component={createActuacion} options={{title: 'Nueva Actuación'}}/>
             <Stack.Screen name="createComposicion" component={createComposicion} options={{title: 'Crear composición'}}/>
+            <Stack.Screen name="createCompositor" component={createCompositor} options={{title: 'Crear compositor'}}/>
         </Stack.Navigator>
     )
 }

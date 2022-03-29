@@ -13,7 +13,8 @@ const createComposicion = (props) => {
         idCompositor: 0,
         idCompositor2: '',
         subtitulo: '',
-        titulo: ''
+        titulo: '',
+        compositor: ''
     }
 
     const [state, setState] = useState(initialState)
@@ -27,11 +28,12 @@ const createComposicion = (props) => {
                 await firebase.db.collection('composiciones').doc(state.idFirebase).set({
                     anoComposicion: Number(state.anoComposicion),
                     genero: state.genero,
-                    idComposicion: Number(state.idComposicion),
+                    idComposicion: state.idComposicion,
                     idCompositor: Number(state.idCompositor),
                     idCompositor2: Number(state.idCompositor2),
                     subtitulo: state.subtitulo,
-                    titulo: state.titulo
+                    titulo: state.titulo,
+                    compositor: state.compositor
                 })
 
                 console.log(state);
@@ -68,6 +70,9 @@ const createComposicion = (props) => {
                 <TextInput keyboardType="numeric" placeholder="Id Compositor" onChangeText={(value) => handleChangeText('idCompositor', value)} />
             </View>
             <View style={styles.inputGroup}>
+                <TextInput placeholder="Nombre abreviado compositor" onChangeText={(value) => handleChangeText('compositor', value)} />
+            </View>
+            <View style={styles.inputGroup}>
                 <TextInput keyboardType="numeric" placeholder="Id Compositor2" onChangeText={(value) => handleChangeText('idCompositor2', value)} />
             </View>
             <View style={styles.inputGroup}>
@@ -76,7 +81,7 @@ const createComposicion = (props) => {
             <View style={styles.inputGroup}>
 
                 <Button
-                    title="Botón"
+                    title="Guardar"
                     onPress={saveComposicion}
                 />
             </View>

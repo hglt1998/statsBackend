@@ -1,4 +1,4 @@
-import { getDatabase, onValue, ref, set, remove } from "firebase/database";
+import { getDatabase, onValue, ref, set } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
 import { DataTable, IconButton } from "react-native-paper";
@@ -40,7 +40,9 @@ const actuacionDetail = (props) => {
 
   const [repertorios, setRepertorios] = useState([]);
 
-  const [composicion, setComposicion] = useState([])
+  const [composicion, setComposicion] = useState([]);
+
+  const [compositor, setCompositor] = useState([]);
 
   // ----------------------------- USEEFFECT -----------------------------
   useEffect(() => {
@@ -98,7 +100,9 @@ const actuacionDetail = (props) => {
     const db = getDatabase();
 
     const id = generateID();
-    
+
+    setDatosComposicion(interpretacion);
+
     Location.installWebGeolocationPolyfill();
 
     navigator.geolocation.getCurrentPosition((position) => {
@@ -109,21 +113,23 @@ const actuacionDetail = (props) => {
         const ubi = new String(response.results[0].formatted_address);
         const time = new Date().toLocaleString();
         const newUbi = ubi.substring(0, ubi.indexOf(","));
+
         if (Platform.OS === "web") {
           const newLocation = window.prompt(
             "Introduzca la localización:",
             "Localización"
           );
-          getDatosComposicion(interpretacion)
-          console.log(composicion);
+          console.log(compositor);
+
           set(ref(db, "repertorios/" + idActuacion + "/" + id), {
             nMarcha: interpretacion,
             ubicacion: newLocation,
             time: time,
             idInterpretacion: id,
-            tituloMarcha: composicion.titulo
+            tituloMarcha: composicion.titulo,
+            compositor: composicion.compositor,
+            idCompositor: composicion.idCompositor,
           });
-          
         } else {
           Alert.prompt(
             "Localización",
@@ -131,13 +137,23 @@ const actuacionDetail = (props) => {
             [
               {
                 text: "Correcta",
-                onPress: () =>
-                  set(ref(db, "repertorios/" + idActuacion + "/" + id), {
-                    nMarcha: interpretacion,
-                    ubicacion: newUbi,
-                    time: time,
-                    idInterpretacion: id,
-                  }),
+                onPress: () => {
+                  try {
+                    set(ref(db, "repertorios/" + idActuacion + "/" + id), {
+                      nMarcha: interpretacion,
+                      ubicacion: newUbi,
+                      time: time,
+                      idInterpretacion: id,
+                      tituloMarcha: composicion.titulo,
+                      longitud: position.coords.longitude,
+                      latitud: position.coords.latitude,
+                      compositor: composicion.compositor,
+                      idCompositor: composicion.idCompositor,
+                    });
+                  } catch (error) {
+                    console.log(error);
+                  }
+                },
               },
               {
                 text: "Nueva localización",
@@ -147,6 +163,9 @@ const actuacionDetail = (props) => {
                     ubicacion: texto,
                     time: time,
                     idInterpretacion: id,
+                    tituloMarcha: composicion.titulo,
+                    compositor: composicion.compositor,
+                    idCompositor: composicion.idCompositor,
                   });
                 },
               },
@@ -156,6 +175,7 @@ const actuacionDetail = (props) => {
         }
       });
     });
+    
     return direccion;
   };
 
@@ -185,20 +205,13 @@ const actuacionDetail = (props) => {
     });
   };
 
-  const getDatosComposicion = (nMarcha) => {
-    const doc = firebase.db.collection("composiciones").doc("virgenDelasAguas");
+  const setDatosComposicion = (nMarcha) => {
+    const doc = firebase.db.collection("composiciones").doc(nMarcha);
     doc.get().then((info) => {
-      console.log(info.data());
-      setComposicion(info.data())
+      const interpretacion = info.data();
+      setComposicion(interpretacion);
     });
   };
-
-  const getMarchas = () => {
-    const doc = firebase.db.collection("composiciones").doc("001");
-    doc.get().then((info) => {
-      console.log(info.data());
-    })
-  }
 
   // ----------------------------- VIEW -----------------------------
 
@@ -226,8 +239,10 @@ const actuacionDetail = (props) => {
           <TextInput
             keyboardType="numeric"
             placeholder="Nº de composición"
-            onChangeText={(value) => {setNuevaInterpretacion(value)
-               getDatosComposicion(value)}}
+            onChangeText={(value) => {
+              setNuevaInterpretacion(value);
+              setDatosComposicion(value);
+            }}
             value={interpretacion}
           />
           <Button
@@ -235,17 +250,18 @@ const actuacionDetail = (props) => {
             onPress={() => {
               addInterpretacion();
               setNuevaInterpretacion("");
+              setCompositor(interpretacion.idCompositor);
             }}
           />
-          <Button title="Check getMarchas" onPress={() => getMarchas()} />
         </View>
       </View>
       {repertorios.length == 0 ? (
         <Text>No Data</Text>
       ) : (
-        <DataTable title="Tabla">
-          <DataTable.Header>
+        <DataTable title="Tabla" style={styles.table}>
+          <DataTable.Header style={styles.table}>
             <DataTable.Title>Nº</DataTable.Title>
+            <DataTable.Title>Composición</DataTable.Title>
             <DataTable.Title numeric>Ubicación</DataTable.Title>
             <DataTable.Title numeric>Hora</DataTable.Title>
             <DataTable.Title numeric>Actions</DataTable.Title>
@@ -253,8 +269,9 @@ const actuacionDetail = (props) => {
           {repertorios.map((repertorio) => {
             const time = String(repertorio.time);
             return (
-              <DataTable.Row key={repertorio.time}>
+              <DataTable.Row key={repertorio.time} style={styles.table}>
                 <DataTable.Cell>{repertorio.nMarcha}</DataTable.Cell>
+                <DataTable.Cell>{repertorio.tituloMarcha}</DataTable.Cell>
                 <DataTable.Cell numeric>{repertorio.ubicacion}</DataTable.Cell>
                 {/* <DataTable.Cell numeric>{`${new Date(repertorio.time)
                   .getHours()}:${String(new Date(repertorio.time)
@@ -283,7 +300,6 @@ const actuacionDetail = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 35,
   },
   text: {
     flex: 1,
@@ -320,6 +336,9 @@ const styles = StyleSheet.create({
   tableHead: {
     padding: 15,
   },
+  table: {
+    justifyContent: 'space-between'
+  }
 });
 
 export default actuacionDetail;
