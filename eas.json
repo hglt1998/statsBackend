@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
     "cli": {
       "version": ">= 0.52.0"
     },
@@ -16,3 +17,22 @@
       "production": {}
     }
   }
+=======
+  "cli": {
+    "version": ">= 0.52.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {}
+  },
+  "submit": {
+    "production": {}
+  }
+}
+>>>>>>> cc8ce445c5b8af40fcda761d86da44e7e572df68
