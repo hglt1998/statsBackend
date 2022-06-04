@@ -1,4 +1,3 @@
-import {StatusBar} from 'expo-status-bar';
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native'
@@ -6,9 +5,6 @@ import {createStackNavigator} from '@react-navigation/stack'
 
 const Stack = createStackNavigator();
 
-import UsersList from './Screens/usersLists'
-import createUser from './Screens/createUser'
-import userDetail from './Screens/userDetail'
 import actuaciones from './Screens/procesiones'
 import createActuacion from "./Screens/createActuacion";
 import actuacionDetail from "./Screens/actuacionDetail"

@@ -15,7 +15,7 @@ import firebase from "../database/firebase";
 
 import Geocode from "react-geocode";
 
-import * as Location from "expo-location";
+import MapView, { Marker } from "react-native-maps";
 
 const actuacionDetail = (props) => {
   // ----------------------------- STATES -----------------------------
@@ -31,6 +31,16 @@ const actuacionDetail = (props) => {
     ubicacion: "",
     ciudad: "",
   };
+
+  const location = {
+    longitude: 37.372807,
+    latitude: -5.75104,
+  };
+
+  const [pin, setPin] = useState({
+    latitude: 37.372807,
+    longitude: -5.75104,
+  });
 
   const idActuacion = props.route.params.eventoId;
 
@@ -92,24 +102,19 @@ const actuacionDetail = (props) => {
   };
 
   const addInterpretacion = async () => {
-    let direccion = "";
-    Geocode.setApiKey("AIzaSyDDRl1F9xvqBdFIY8qgEynwizdgMqCHTRY");
+    Geocode.setApiKey("AIzaSyAv75F1CKLscQG92dkSR_3oMTl1CHSE0l8");
     Geocode.setLanguage("es");
     Geocode.setRegion("es");
     Geocode.setLocationType("ROOFTOP");
+    Geocode.enableDebug(true);
     const db = getDatabase();
 
     const id = generateID();
 
     setDatosComposicion(interpretacion);
 
-    Location.installWebGeolocationPolyfill();
-
-    navigator.geolocation.getCurrentPosition((position) => {
-      Geocode.fromLatLng(
-        position.coords.latitude,
-        position.coords.longitude
-      ).then((response) => {
+    try {
+      Geocode.fromLatLng(pin.latitude, pin.longitude).then((response) => {
         const ubi = new String(response.results[0].formatted_address);
         const time = new Date().toLocaleString();
         const newUbi = ubi.substring(0, ubi.indexOf(","));
@@ -119,7 +124,6 @@ const actuacionDetail = (props) => {
             "Introduzca la localización:",
             "Localización"
           );
-          console.log(compositor);
 
           set(ref(db, "repertorios/" + idActuacion + "/" + id), {
             nMarcha: interpretacion,
@@ -131,52 +135,26 @@ const actuacionDetail = (props) => {
             idCompositor: composicion.idCompositor,
           });
         } else {
-          Alert.prompt(
-            "Localización",
-            `Confirme ${newUbi} como la localización correcta. Introduzca la dirección en caso de localización incorrecta.`,
-            [
-              {
-                text: "Correcta",
-                onPress: () => {
-                  try {
-                    set(ref(db, "repertorios/" + idActuacion + "/" + id), {
-                      nMarcha: interpretacion,
-                      ubicacion: newUbi,
-                      time: time,
-                      idInterpretacion: id,
-                      tituloMarcha: composicion.titulo,
-                      longitud: position.coords.longitude,
-                      latitud: position.coords.latitude,
-                      compositor: composicion.compositor,
-                      idCompositor: composicion.idCompositor,
-                    });
-                  } catch (error) {
-                    console.log(error);
-                  }
-                },
-              },
-              {
-                text: "Nueva localización",
-                onPress: (texto) => {
-                  set(ref(db, "repertorios/" + idActuacion + "/" + id), {
-                    nMarcha: interpretacion,
-                    ubicacion: texto,
-                    time: time,
-                    idInterpretacion: id,
-                    tituloMarcha: composicion.titulo,
-                    compositor: composicion.compositor,
-                    idCompositor: composicion.idCompositor,
-                  });
-                },
-              },
-            ],
-            "plain-text"
-          );
+          try {
+            set(ref(db, "repertorios/" + idActuacion + "/" + id), {
+              nMarcha: interpretacion,
+              ubicacion: newUbi,
+              time: time,
+              idInterpretacion: id,
+              tituloMarcha: composicion.titulo,
+              longitud: pin.longitude,
+              latitud: pin.latitude,
+              compositor: composicion.compositor,
+              idCompositor: composicion.idCompositor,
+            });
+          } catch (error) {
+            console.error(error);
+          }
         }
       });
-    });
-    
-    return direccion;
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // ----------------------------- GETTERS -----------------------------
@@ -200,7 +178,7 @@ const actuacionDetail = (props) => {
     onValue(repertorioRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        setRepertorios(Object.values(data));
+        setRepertorios(Object.values(data).reverse());
       }
     });
   };
@@ -217,43 +195,76 @@ const actuacionDetail = (props) => {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.topInfo}>
-        <View style={styles.switch}>
-          <Text>En directo</Text>
+      <View style={styles.card}>
+        <View style={styles.switchGroup}>
           <Switch
+            style={styles.switch}
             trackColor={{ false: "#767577", true: "#FF0000" }}
             thumbColor={actuacion.isLive ? "#FFFFFF" : "#f4f3f4"}
             ios_backgroundColor="#3e3e3e"
             onValueChange={(value) => handleToggleSwitch(value)}
             value={actuacion.isLive}
           />
+          {actuacion.isLive ? (
+            <Text style={styles.switchFont}>DIRECTO</Text>
+          ) : (
+            <Text style={styles.switchFontFalse}>NO DIRECTO</Text>
+          )}
         </View>
-        <Text>{actuacion.concepto}</Text>
         <Text>{actuacion.organizador1}</Text>
+        <Text>{actuacion.concepto}</Text>
         <Text>
           {new Date(actuacion.fecha.seconds * 1000).toLocaleString().toString()}
         </Text>
       </View>
       <View>
         <View style={styles.inputs}>
-          <TextInput
-            keyboardType="numeric"
-            placeholder="Nº de composición"
-            onChangeText={(value) => {
-              setNuevaInterpretacion(value);
-              setDatosComposicion(value);
-            }}
-            value={interpretacion}
-          />
-          <Button
-            title="Añadir composición"
-            onPress={() => {
-              addInterpretacion();
-              setNuevaInterpretacion("");
-              setCompositor(interpretacion.idCompositor);
-            }}
-          />
+          <View style={styles.textInputs}>
+            <TextInput
+              style={{ flexDirection: "row", justifyContent: "center" }}
+              placeholderTextColor="#646FD4"
+              keyboardType="numeric"
+              placeholder="Nº de composición"
+              onChangeText={(value) => {
+                setNuevaInterpretacion(value);
+                setDatosComposicion(value);
+              }}
+              value={interpretacion}
+            />
+          </View>
+          <View style={styles.button}>
+            <Button
+              color="#FFFFFF"
+              title="Añadir composición"
+              onPress={() => {
+                addInterpretacion();
+                setNuevaInterpretacion("");
+                setCompositor(interpretacion.idCompositor);
+              }}
+            />
+          </View>
         </View>
+        <MapView
+          style={{ height: 300 }}
+          initialRegion={{
+            latitude: 37.372796,
+            longitude: -5.75108,
+            longitudeDelta: 0.01,
+            latitudeDelta: 0.01,
+          }}
+          provider="google"
+        >
+          <Marker
+            draggable
+            coordinate={pin}
+            onDragEnd={(e) => {
+              setPin({
+                latitude: e.nativeEvent.coordinate.latitude,
+                longitude: e.nativeEvent.coordinate.longitude,
+              });
+            }}
+          />
+        </MapView>
       </View>
       {repertorios.length == 0 ? (
         <Text>No Data</Text>
@@ -273,10 +284,6 @@ const actuacionDetail = (props) => {
                 <DataTable.Cell>{repertorio.nMarcha}</DataTable.Cell>
                 <DataTable.Cell>{repertorio.tituloMarcha}</DataTable.Cell>
                 <DataTable.Cell numeric>{repertorio.ubicacion}</DataTable.Cell>
-                {/* <DataTable.Cell numeric>{`${new Date(repertorio.time)
-                  .getHours()}:${String(new Date(repertorio.time)
-                    .getMinutes())
-                  }`}</DataTable.Cell> */}
                 <DataTable.Cell numeric>
                   {time.substring(time.indexOf(",") + 2, time.length)}
                 </DataTable.Cell>
@@ -298,8 +305,45 @@ const actuacionDetail = (props) => {
 };
 
 const styles = StyleSheet.create({
+  button: {
+    backgroundColor: "#646FD4",
+    borderRadius: 5,
+    marginVertical: 20,
+    padding: 5,
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    padding: 10,
+    margin: 10,
+    marginBottom: 0,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
+    elevation: 6,
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    flexDirection: "row",
+    alignContent: "space-between",
+  },
   container: {
     flex: 1,
+  },
+  textInputs: {
+    flexDirection: "row",
+    alignContent: "center",
+    padding: 10,
+    justifyContent: "space-between",
+    marginVertical: 20,
+    borderRadius: 10,
+    borderColor: "#646FD4",
+    borderWidth: 1,
+    width: 200,
+    alignItems: "center",
   },
   text: {
     flex: 1,
@@ -316,29 +360,33 @@ const styles = StyleSheet.create({
     fontWeight: "300",
     fontSize: 11,
   },
-  switch: {
+  switchGroup: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    flexWrap: "wrap",
-    color: "#FF0000",
     alignItems: "center",
-    alignContent: "space-between",
+    justifyContent: "space-around",
+  },
+  switchFont: {
+    color: "#d03e3e",
+    paddingLeft: 15,
+  },
+  switchFontFalse: {
+    paddingLeft: 15,
+  },
+  switch: {
+    height: 30,
   },
   inputs: {
+    flex: 1,
     flexDirection: "row",
-    alignContent: "center",
-    padding: 10,
-    justifyContent: "center",
-    borderWidth: 1,
-    marginVertical: 10,
-    borderRadius: 10,
+    justifyContent: "space-around",
+    padding: 5,
   },
   tableHead: {
     padding: 15,
   },
   table: {
-    justifyContent: 'space-between'
-  }
+    justifyContent: "space-between",
+  },
 });
 
 export default actuacionDetail;

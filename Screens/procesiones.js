@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
-  TextInput,
+  StatusBar,
   ScrollView,
   Button,
   Text,
@@ -15,7 +15,7 @@ const wait = (timeout) => {
   return new Promise((resolve) => setTimeout(resolve, timeout));
 };
 
-const events = (props) => {
+function events({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [events, setEvents] = useState([]);
 
@@ -55,22 +55,32 @@ const events = (props) => {
         <RefreshControl refreshing={refreshing} onRefresh={loadData} />
       }
     >
-      <View style={styles.buttons}>
+      <StatusBar
+        animated={true}
+        backgroundColor="#61dafb"
+        barStyle={"dark-content"}
+        showHideTransition={"fade"}
+        hidden={false}
+      />
+      <View style={styles.button}>
         <Button
+          color={"#FFFFFF"}
           title={"Crear actuación"}
-          onPress={() => props.navigation.navigate("createActuacion")}
+          onPress={() => navigation.navigate("createActuacion")}
         />
       </View>
-      <View style={styles.buttons}>
+      <View style={styles.button}>
         <Button
+          color={"#FFFFFF"}
           title={"Crear composición"}
-          onPress={() => props.navigation.navigate("createComposicion")}
+          onPress={() => navigation.navigate("createComposicion")}
         />
       </View>
-      <View style={styles.buttons}>
+      <View style={styles.button}>
         <Button
+          color={"#FFFFFF"}
           title={"Crear compositor"}
-          onPress={() => props.navigation.navigate("createCompositor")}
+          onPress={() => navigation.navigate("createCompositor")}
         />
       </View>
 
@@ -79,11 +89,11 @@ const events = (props) => {
           .toLocaleString()
           .toString();
         return (
-          <ListItem style={styles.buttons}
+          <ListItem
+            style={styles.item}
             key={evento.id}
-            bottomDivider
             onPress={() => {
-              props.navigation.navigate("actuacionDetail", {
+              navigation.navigate("actuacionDetail", {
                 eventoId: evento.id,
               });
             }}
@@ -107,11 +117,38 @@ const events = (props) => {
       })}
     </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  buttons: {
+  item: {
     padding: 5,
+    backgroundColor: "#FFFFFF",
+    padding: 5,
+    margin: 5,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
+    elevation: 6,
+  },
+  button: {
+    padding: 5,
+    backgroundColor: "#646FD4",
+    padding: 5,
+    margin: 5,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
+    elevation: 6,
   },
 });
 
