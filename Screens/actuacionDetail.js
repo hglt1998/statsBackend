@@ -1,6 +1,6 @@
 import { getDatabase, onValue, ref, set } from "firebase/database";
 import React, { useEffect, useState } from "react";
-import { Alert, Platform } from "react-native";
+import { Platform } from "react-native";
 import { DataTable, IconButton } from "react-native-paper";
 import {
   Button,
@@ -12,10 +12,6 @@ import {
   TextInput,
 } from "react-native";
 import firebase from "../database/firebase";
-
-import Geocode from "react-geocode";
-
-import MapView, { Marker } from "react-native-maps";
 
 const actuacionDetail = (props) => {
   // ----------------------------- STATES -----------------------------
@@ -32,16 +28,6 @@ const actuacionDetail = (props) => {
     ciudad: "",
   };
 
-  const location = {
-    longitude: 37.372807,
-    latitude: -5.75104,
-  };
-
-  const [pin, setPin] = useState({
-    latitude: 37.372807,
-    longitude: -5.75104,
-  });
-
   const idActuacion = props.route.params.eventoId;
 
   const [interpretacion, setNuevaInterpretacion] = useState("");
@@ -53,6 +39,8 @@ const actuacionDetail = (props) => {
   const [composicion, setComposicion] = useState([]);
 
   const [compositor, setCompositor] = useState([]);
+
+  const [location, setLocation] = useState("");
 
   // ----------------------------- USEEFFECT -----------------------------
   useEffect(() => {
@@ -102,55 +90,22 @@ const actuacionDetail = (props) => {
   };
 
   const addInterpretacion = async () => {
-    Geocode.setApiKey("AIzaSyAv75F1CKLscQG92dkSR_3oMTl1CHSE0l8");
-    Geocode.setLanguage("es");
-    Geocode.setRegion("es");
-    Geocode.setLocationType("ROOFTOP");
-    Geocode.enableDebug(true);
     const db = getDatabase();
 
     const id = generateID();
 
     setDatosComposicion(interpretacion);
 
+    const time = new Date().toLocaleString();
     try {
-      Geocode.fromLatLng(pin.latitude, pin.longitude).then((response) => {
-        const ubi = new String(response.results[0].formatted_address);
-        const time = new Date().toLocaleString();
-        const newUbi = ubi.substring(0, ubi.indexOf(","));
-
-        if (Platform.OS === "web") {
-          const newLocation = window.prompt(
-            "Introduzca la localización:",
-            "Localización"
-          );
-
-          set(ref(db, "repertorios/" + idActuacion + "/" + id), {
-            nMarcha: interpretacion,
-            ubicacion: newLocation,
-            time: time,
-            idInterpretacion: id,
-            tituloMarcha: composicion.titulo,
-            compositor: composicion.compositor,
-            idCompositor: composicion.idCompositor,
-          });
-        } else {
-          try {
-            set(ref(db, "repertorios/" + idActuacion + "/" + id), {
-              nMarcha: interpretacion,
-              ubicacion: newUbi,
-              time: time,
-              idInterpretacion: id,
-              tituloMarcha: composicion.titulo,
-              longitud: pin.longitude,
-              latitud: pin.latitude,
-              compositor: composicion.compositor,
-              idCompositor: composicion.idCompositor,
-            });
-          } catch (error) {
-            console.error(error);
-          }
-        }
+      set(ref(db, "repertorios/" + idActuacion + "/" + id), {
+        nMarcha: interpretacion,
+        ubicacion: location,
+        time: time,
+        idInterpretacion: id,
+        tituloMarcha: composicion.titulo,
+        compositor: composicion.compositor,
+        idCompositor: composicion.idCompositor,
       });
     } catch (error) {
       console.error(error);
@@ -232,6 +187,18 @@ const actuacionDetail = (props) => {
               value={interpretacion}
             />
           </View>
+          <View style={styles.textInputs}>
+            <TextInput
+              style={{ flexDirection: "row", justifyContent: "center" }}
+              placeholderTextColor="#646FD4"
+              placeholder="Ubicación"
+              onChangeText={(value) => {
+                setLocation(value);
+              }}
+              value={location}
+            />
+          </View>
+        </View>
           <View style={styles.button}>
             <Button
               color="#FFFFFF"
@@ -239,32 +206,11 @@ const actuacionDetail = (props) => {
               onPress={() => {
                 addInterpretacion();
                 setNuevaInterpretacion("");
+                setLocation("")
                 setCompositor(interpretacion.idCompositor);
               }}
             />
           </View>
-        </View>
-        <MapView
-          style={{ height: 300 }}
-          initialRegion={{
-            latitude: 37.372796,
-            longitude: -5.75108,
-            longitudeDelta: 0.01,
-            latitudeDelta: 0.01,
-          }}
-          provider="google"
-        >
-          <Marker
-            draggable
-            coordinate={pin}
-            onDragEnd={(e) => {
-              setPin({
-                latitude: e.nativeEvent.coordinate.latitude,
-                longitude: e.nativeEvent.coordinate.longitude,
-              });
-            }}
-          />
-        </MapView>
       </View>
       {repertorios.length == 0 ? (
         <Text>No Data</Text>
@@ -308,7 +254,7 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: "#646FD4",
     borderRadius: 5,
-    marginVertical: 20,
+    marginHorizontal: 10,
     padding: 5,
   },
   card: {
@@ -342,7 +288,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderColor: "#646FD4",
     borderWidth: 1,
-    width: 200,
+    width: 170,
     alignItems: "center",
   },
   text: {
