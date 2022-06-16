@@ -1,6 +1,6 @@
 import { getDatabase, onValue, ref, set } from "firebase/database";
 import React, { useEffect, useState } from "react";
-import { Platform } from "react-native";
+import { Dimensions, Platform } from "react-native";
 import { DataTable, IconButton } from "react-native-paper";
 import {
   Button,
@@ -176,7 +176,7 @@ const actuacionDetail = (props) => {
         <View style={styles.inputs}>
           <View style={styles.textInputs}>
             <TextInput
-              style={{ flexDirection: "row", justifyContent: "center" }}
+              style={{ flexDirection: "row", justifyContent: "center", width: 150 }}
               placeholderTextColor="#646FD4"
               keyboardType="numeric"
               placeholder="Nº de composición"
@@ -189,8 +189,9 @@ const actuacionDetail = (props) => {
           </View>
           <View style={styles.textInputs}>
             <TextInput
-              style={{ flexDirection: "row", justifyContent: "center" }}
+              style={{ flexDirection: "row", justifyContent: "center", width: 150 }}
               placeholderTextColor="#646FD4"
+              autoCorrect={false}
               placeholder="Ubicación"
               onChangeText={(value) => {
                 setLocation(value);
@@ -215,39 +216,57 @@ const actuacionDetail = (props) => {
       {repertorios.length == 0 ? (
         <Text>No Data</Text>
       ) : (
-        <DataTable title="Tabla" style={styles.table}>
-          <DataTable.Header style={styles.table}>
-            <DataTable.Title>Nº</DataTable.Title>
-            <DataTable.Title>Composición</DataTable.Title>
-            <DataTable.Title numeric>Ubicación</DataTable.Title>
-            <DataTable.Title numeric>Hora</DataTable.Title>
-            <DataTable.Title numeric>Actions</DataTable.Title>
-          </DataTable.Header>
-          {repertorios.map((repertorio) => {
-            const time = String(repertorio.time);
-            return (
-              <DataTable.Row key={repertorio.time} style={styles.table}>
-                <DataTable.Cell>{repertorio.nMarcha}</DataTable.Cell>
-                <DataTable.Cell>{repertorio.tituloMarcha}</DataTable.Cell>
-                <DataTable.Cell numeric>{repertorio.ubicacion}</DataTable.Cell>
-                <DataTable.Cell numeric>
-                  {time.substring(time.indexOf(",") + 2, time.length)}
-                </DataTable.Cell>
-                <DataTable.Cell numeric>
-                  <IconButton
-                    icon="delete"
-                    onPress={() => handleDelete(repertorio.idInterpretacion)}
-                  />
-                </DataTable.Cell>
-              </DataTable.Row>
-            );
-          })}
-        </DataTable>
-      )}
-
-      <Button title={"Home"} onPress={handleHome} />
-    </ScrollView>
-  );
+        <>
+          <View style={styles.inputs}>
+            <Text style={{justifyContent: "center"}}>Total: {repertorios.length}</Text>
+          </View>
+          <View style={styles.table}>
+            <View style={styles.tableHead}>
+              <View style={styles.column1}>
+                <Text style={styles.headText}>Nº</Text>
+              </View>
+              <View style={styles.column2}>
+                <Text style={styles.headText}>Composición</Text>
+              </View>
+              <View style={styles.column3}>
+                <Text style={styles.headText}>Ubicación</Text>
+              </View>
+              <View style={styles.column4}>
+                <Text style={styles.headText}>Hora</Text>
+              </View>
+              <View style={styles.column5}>
+                <Text style={styles.headText}>Actions</Text>
+              </View>
+            </View>
+            {repertorios.map((repertorio) => {
+              const time = String(repertorio.time);
+              return (
+                <View style={styles.tableRow} key={repertorio.time}>
+                  <View style={styles.column1}>
+                    <Text style={styles.viewText}>{repertorio.nMarcha}</Text>
+                  </View>
+                  <View style={styles.column2}>
+                    <Text>{repertorio.tituloMarcha}</Text>
+                  </View>
+                  <View style={styles.column3}>
+                    <Text>{repertorio.ubicacion}</Text>
+                  </View>
+                  <View style={styles.column4}>
+                    <Text>{time.substring(time.indexOf(",") + 2, time.length)}</Text>
+                  </View>
+                  <View style={styles.column5}>
+                    <IconButton icon="delete" onPress={() => handleDelete(repertorio.idInterpretacion)} />
+                  </View>
+                </View>
+              )
+            })}
+          </View>
+        </>
+        )}
+        
+        <Button title={"Home"} onPress={handleHome} />
+        </ScrollView>
+        );
 };
 
 const styles = StyleSheet.create({
@@ -278,6 +297,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    marginBottom: 40
   },
   textInputs: {
     flexDirection: "row",
@@ -328,11 +348,58 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   tableHead: {
-    padding: 15,
+    display: "flex",
+    flexDirection: "row",
+    width: "100%",
+    backgroundColor: "#000000",
+    paddingVertical: 10,
+    borderRadius: 5
   },
   table: {
-    justifyContent: "space-between",
+    width: "100%",
+    padding: 10
   },
+  tableRow: {
+    display: "flex",
+    flexDirection: "row",
+    borderWidth: 0.8,
+    borderRadius: 5,
+    borderColor: "#646FD4",
+    textAlignVertical:"center",
+    marginVertical: 1
+  },
+  column1: {
+    paddingLeft: 5,
+    width: "8%",
+    justifyContent: "center"
+  },
+  column2: {
+    paddingLeft: 5,
+    width: "30%",
+    justifyContent: "center"
+  },
+  column3: {
+    paddingLeft: 15,
+    width: "30%",
+    justifyContent: "center"
+  },
+  column4: {
+    paddingLeft: 10,
+    width: "19%",
+    justifyContent: "center"
+  },
+  column5: {
+    paddingRight: 10,
+    width: "15%",
+    justifyContent: "center"
+  },
+  viewText: {
+    alignItems: "center",
+    textAlignVertical: "center"
+  },
+  headText: {
+    color: "#FFFFFF"
+  }
 });
 
 export default actuacionDetail;
