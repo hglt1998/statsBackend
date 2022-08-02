@@ -1,7 +1,6 @@
 import { getDatabase, onValue, ref, set } from "firebase/database";
 import React, { useEffect, useState } from "react";
-import { Dimensions, Platform } from "react-native";
-import { DataTable, IconButton } from "react-native-paper";
+import { IconButton } from "react-native-paper";
 import {
   Button,
   ScrollView,
@@ -154,7 +153,7 @@ const actuacionDetail = (props) => {
         <View style={styles.switchGroup}>
           <Switch
             style={styles.switch}
-            trackColor={{ false: "#767577", true: "#FF0000" }}
+            trackColor={{ false: "#646FD4", true: "#FF0000" }}
             thumbColor={actuacion.isLive ? "#FFFFFF" : "#f4f3f4"}
             ios_backgroundColor="#3e3e3e"
             onValueChange={(value) => handleToggleSwitch(value)}
@@ -189,7 +188,7 @@ const actuacionDetail = (props) => {
           </View>
           <View style={styles.textInputs}>
             <TextInput
-              style={{ flexDirection: "row", justifyContent: "center", width: 150 }}
+              style={{ flexDirection: "row", justifyContent: "center", width: 117 }}
               placeholderTextColor="#646FD4"
               autoCorrect={false}
               placeholder="Ubicación"
@@ -198,6 +197,7 @@ const actuacionDetail = (props) => {
               }}
               value={location}
             />
+            <IconButton icon="backspace" onPress={() => setLocation("")} style={{margin: 0, padding: 0, height: 25}} color="#646FD4" />
           </View>
         </View>
           <View style={styles.button}>
@@ -255,7 +255,7 @@ const actuacionDetail = (props) => {
                     <Text>{time.substring(time.indexOf(",") + 2, time.length)}</Text>
                   </View>
                   <View style={styles.column5}>
-                    <IconButton icon="delete" onPress={() => handleDelete(repertorio.idInterpretacion)} />
+                    <IconButton icon="delete" onPress={() => handleDelete(repertorio.idInterpretacion)} color="#0e606b" />
                   </View>
                 </View>
               )
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     width: "100%",
-    backgroundColor: "#000000",
+    backgroundColor: "#646FD4",
     paddingVertical: 10,
     borderRadius: 5
   },
