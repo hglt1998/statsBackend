@@ -145,6 +145,10 @@ const actuacionDetail = (props) => {
     });
   };
 
+  const handleSetLocation = (ubicacion) => {
+    setLocation(ubicacion)
+  }
+
   // ----------------------------- VIEW -----------------------------
 
   return (
@@ -249,7 +253,7 @@ const actuacionDetail = (props) => {
                     <Text>{repertorio.tituloMarcha}</Text>
                   </View>
                   <View style={styles.column3}>
-                    <Text>{repertorio.ubicacion}</Text>
+                    <Text onPress={()=> handleSetLocation(repertorio.ubicacion)}>{repertorio.ubicacion}</Text>
                   </View>
                   <View style={styles.column4}>
                     <Text>{time.substring(time.indexOf(",") + 2, time.length)}</Text>
