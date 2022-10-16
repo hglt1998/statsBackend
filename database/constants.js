@@ -20,10 +20,6 @@ export const tiposMarcha = [
 export const tiposActuaciones = [
     {
         key: "Procesión",
-        value: "Procesión con gps"
-    },
-    {
-        key: "Procesión sin gps",
         value: "Procesión"
     },
     {
