@@ -22,7 +22,7 @@ const actuacionDetail = (props) => {
     isLive: Boolean,
     organizador1: "",
     organizador2: "",
-    tipoActuacion: "",
+    tipo: "",
     ubicacion: "",
     ciudad: "",
   };
@@ -99,7 +99,7 @@ const actuacionDetail = (props) => {
     try {
       set(ref(db, "repertorios/" + idActuacion + "/" + id), {
         nMarcha: interpretacion,
-        ubicacion: location,
+        ubicacion: location ? location : "",
         time: time,
         idInterpretacion: id,
         tituloMarcha: composicion.titulo,
@@ -190,7 +190,8 @@ const actuacionDetail = (props) => {
               value={interpretacion}
             />
           </View>
-          <View style={styles.textInputs}>
+          {actuacion.tipo === "Procesión" ?
+            <View style={styles.textInputs}>
             <TextInput
               style={{ flexDirection: "row", justifyContent: "center", width: 117 }}
               placeholderTextColor="#646FD4"
@@ -201,8 +202,12 @@ const actuacionDetail = (props) => {
               }}
               value={location}
             />
-            <IconButton icon="backspace" onPress={() => setLocation("")} style={{margin: 0, padding: 0, height: 25}} color="#646FD4" />
+            <IconButton icon="backspace" onPress={() => setLocation("")} style={{margin: 0, padding: 0, height: 25}}  />
           </View>
+          :
+          <></>
+          }
+          
         </View>
           <View style={styles.button}>
             <Button
@@ -232,9 +237,11 @@ const actuacionDetail = (props) => {
               <View style={styles.column2}>
                 <Text style={styles.headText}>Composición</Text>
               </View>
+              {actuacion.tipo === "Procesión" ?
               <View style={styles.column3}>
                 <Text style={styles.headText}>Ubicación</Text>
               </View>
+              : <></>}
               <View style={styles.column4}>
                 <Text style={styles.headText}>Hora</Text>
               </View>
@@ -252,9 +259,12 @@ const actuacionDetail = (props) => {
                   <View style={styles.column2}>
                     <Text>{repertorio.tituloMarcha}</Text>
                   </View>
+                  {actuacion.tipo === "Procesión" ?
                   <View style={styles.column3}>
                     <Text onPress={()=> handleSetLocation(repertorio.ubicacion)}>{repertorio.ubicacion}</Text>
                   </View>
+                  : <></>
+                  }
                   <View style={styles.column4}>
                     <Text>{time.substring(time.indexOf(",") + 2, time.length)}</Text>
                   </View>
@@ -267,7 +277,6 @@ const actuacionDetail = (props) => {
           </View>
         </>
         )}
-        
         <Button title={"Home"} onPress={handleHome} />
         </ScrollView>
         );
@@ -370,32 +379,43 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderColor: "#646FD4",
     textAlignVertical:"center",
-    marginVertical: 1
+    marginVertical: 1,
   },
   column1: {
     paddingLeft: 5,
     width: "8%",
-    justifyContent: "center"
+    justifyContent: "center",
+    flexBasis: "auto"
   },
   column2: {
     paddingLeft: 5,
     width: "30%",
-    justifyContent: "center"
+    justifyContent: "center",
+    flexBasis: "auto",
+    flexGrow: 1
   },
   column3: {
     paddingLeft: 15,
     width: "30%",
-    justifyContent: "center"
+    justifyContent: "center",
+    flexBasis: 100,
+    flexGrow: 0,
+    flexShrink: 2
   },
   column4: {
     paddingLeft: 10,
     width: "19%",
-    justifyContent: "center"
+    justifyContent: "center",
+    flexBasis: "auto",
+    flexGrow: 1
   },
   column5: {
     paddingRight: 10,
     width: "15%",
-    justifyContent: "center"
+    justifyContent: "center",
+    flexBasis: 50,
+    flexGrow: 2,
+    flexShrink: 1
   },
   viewText: {
     alignItems: "center",

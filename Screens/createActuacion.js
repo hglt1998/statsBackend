@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import firebase from "../database/firebase";
-import { Picker } from "@react-native-picker/picker";
+import { SegmentedButtons } from 'react-native-paper'
 import { tiposActuaciones } from "../database/constants";
 import { getDatabase, set, ref } from "firebase/database";
 
@@ -83,7 +83,6 @@ const createActuacion = (props) => {
         console.error(error);
       }
     }
-    console.error(state);
   };
 
   return (
@@ -112,6 +111,29 @@ const createActuacion = (props) => {
                 onPress={saveActuacion}
               />
             </View>
+          </View>
+          <View style={styles.picker}>
+            <SegmentedButtons
+            value={state.tipoActuacion}
+            onValueChange={(change) => {setState({...state, tipoActuacion: change})}}
+            buttons={[
+              {
+                value: tiposActuaciones[0].value,
+                label: tiposActuaciones[0].key
+              },
+              {
+                value: tiposActuaciones[1].value,
+                label: tiposActuaciones[1].key
+              },
+              {
+                value: tiposActuaciones[2].value,
+                label: tiposActuaciones[2].key
+              }
+            ]}
+            density="regular"
+            style={{width: 300}}
+            >
+            </SegmentedButtons>
           </View>
           <View style={styles.inputGroup}>
             <Text style={styles.textLabel}>Concepto</Text>
@@ -185,24 +207,6 @@ const createActuacion = (props) => {
               returnKeyType="next"
             />
           </View>
-          <View style={styles.picker}>
-            <Picker
-              selectedValue={state.tipoActuacion}
-              onValueChange={(itemValue) => {
-                setState({ ...state, tipoActuacion: itemValue });
-              }}
-            >
-              {tiposActuaciones.map((tipo) => {
-                return (
-                  <Picker.Item
-                    key={tipo.key}
-                    label={tipo.key}
-                    value={tipo.value}
-                  />
-                );
-              })}
-            </Picker>
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -261,6 +265,11 @@ const styles = StyleSheet.create({
     elevation: 6,
     borderColor: "#646FD4",
     borderWidth: 0.5,
+  },
+  picker: {
+    flex: 1,
+    alignItems: "center",
+    flexWrap: "nowrap"
   },
   card: {
     backgroundColor: "#FFFFFF",
