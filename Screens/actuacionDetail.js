@@ -1,4 +1,4 @@
-import { getDatabase, onValue, ref, set } from "firebase/database";
+import { getDatabase, increment, onValue, ref, set, update } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { IconButton } from "react-native-paper";
 import {
@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Switch,
   TextInput,
+  Alert,
 } from "react-native";
 import firebase from "../database/firebase";
 
@@ -25,6 +26,7 @@ const actuacionDetail = (props) => {
     tipo: "",
     ubicacion: "",
     ciudad: "",
+    enlazada: 0
   };
 
   const idActuacion = props.route.params.eventoId;
@@ -69,8 +71,16 @@ const actuacionDetail = (props) => {
   };
 
   const handleDelete = (id) => {
-    const db = getDatabase();
-    set(ref(db, "repertorios/" + idActuacion + "/" + id), null);
+    Alert.alert("Eliminar","¿Estás seguro que deseas eliminar esta composición del repertorio?",[
+      {
+        text: "No", onPress: ()=> console.log("No selected")
+      },
+      {text: "Sí", onPress: () => {
+        const db = getDatabase();
+        set(ref(db, "repertorios/" + idActuacion + "/" + id), null);
+      }},
+    ], {cancelable: true})
+    
   };
 
   const generateID = () => {
@@ -90,9 +100,7 @@ const actuacionDetail = (props) => {
 
   const addInterpretacion = async () => {
     const db = getDatabase();
-
     const id = generateID();
-
     setDatosComposicion(interpretacion);
 
     const time = new Date().toLocaleString();
@@ -105,11 +113,23 @@ const actuacionDetail = (props) => {
         tituloMarcha: composicion.titulo,
         compositor: composicion.compositor,
         idCompositor: composicion.idCompositor,
+        enlazada: 0
       });
     } catch (error) {
       console.error(error);
     }
   };
+
+  const handleEnlazada = async (id) => {
+    const dbRef = ref(getDatabase())
+    try {
+      const updates = {}
+      updates[`repertorios/${idActuacion}/${id}/enlazada`] = increment(1)
+      update(dbRef, updates)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   // ----------------------------- GETTERS -----------------------------
 
@@ -252,7 +272,7 @@ const actuacionDetail = (props) => {
             {repertorios.map((repertorio) => {
               const time = String(repertorio.time);
               return (
-                <View style={styles.tableRow} key={repertorio.time}>
+                <View style={repertorio.enlazada % 2 == 0 ? styles.tableRowEnlazada : styles.tableRow} key={repertorio.time} >
                   <View style={styles.column1}>
                     <Text style={styles.viewText}>{repertorio.nMarcha}</Text>
                   </View>
@@ -270,6 +290,9 @@ const actuacionDetail = (props) => {
                   </View>
                   <View style={styles.column5}>
                     <IconButton icon="delete" onPress={() => handleDelete(repertorio.idInterpretacion)} color="#0e606b" />
+                  </View>
+                  <View style={styles.column5}>
+                  <IconButton icon="link-variant" onPress={() => handleEnlazada(repertorio.idInterpretacion)} color="#0e606b" />
                   </View>
                 </View>
               )
@@ -380,6 +403,17 @@ const styles = StyleSheet.create({
     borderColor: "#646FD4",
     textAlignVertical:"center",
     marginVertical: 1,
+  },
+  tableRowEnlazada: {
+    display: "flex",
+    flexDirection: "row",
+    borderWidth: 1.2,
+    borderRadius: 7,
+    borderColor: "#646FD4",
+    textAlignVertical:"center",
+    marginVertical: 1,
+    backgroundColor: "#D7D7DE",
+    color: "#FFFFFF"
   },
   column1: {
     paddingLeft: 5,

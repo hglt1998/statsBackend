@@ -11,24 +11,34 @@
       "backgroundColor": "#ffffff"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/e558cd69-b8bf-4ee0-8027-045800974a6b"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hglt1998.bmmstats"
+      "bundleIdentifier": "com.hglt1998.bmmstats",
+      "runtimeVersion": {
+        "policy": "sdkVersion"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.hglt1998.bmmstats"
+      "package": "com.hglt1998.bmmstats",
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "favicon": "./assets/ColorSinFondo.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e558cd69-b8bf-4ee0-8027-045800974a6b"
+      }
     }
   }
 }
