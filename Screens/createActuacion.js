@@ -8,6 +8,7 @@ import {
   Switch,
   Text,
   KeyboardAvoidingView,
+  DatePickerIOSBase,
 } from "react-native";
 import firebase from "../database/firebase";
 import { SegmentedButtons } from 'react-native-paper'

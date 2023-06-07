@@ -113,7 +113,7 @@ const actuacionDetail = (props) => {
         tituloMarcha: composicion.titulo,
         compositor: composicion.compositor,
         idCompositor: composicion.idCompositor,
-        enlazada: 0
+        enlazada: 1
       });
     } catch (error) {
       console.error(error);
