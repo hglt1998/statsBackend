@@ -19,10 +19,6 @@ function events({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [events, setEvents] = useState([]);
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-  }, []);
-
   const loadData = () => {
     firebase.db
       .collection("actuaciones")
@@ -81,6 +77,13 @@ function events({ navigation }) {
           color={"#FFFFFF"}
           title={"Crear compositor"}
           onPress={() => navigation.navigate("createCompositor")}
+        />
+      </View>
+      <View style={styles.button}>
+        <Button
+          color={"#FFFFFF"}
+          title={"Organizadores"}
+          onPress={() => navigation.navigate("manageOrganizadores")}
         />
       </View>
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Button,
@@ -8,7 +8,6 @@ import {
   Switch,
   Text,
   KeyboardAvoidingView,
-  DatePickerIOSBase,
 } from "react-native";
 import firebase from "../database/firebase";
 import { SegmentedButtons } from 'react-native-paper'
@@ -19,6 +18,7 @@ const createActuacion = (props) => {
   const database = getDatabase();
   const [date] = useState(new Date());
   const [isLive, setIsLive] = useState(false);
+  const [organizadores, setOrganizadores] = useState([])
 
   const ref1 = useRef();
   const ref2 = useRef();
@@ -39,6 +39,32 @@ const createActuacion = (props) => {
     ubicacion: "",
     ciudad: "",
   });
+
+  useEffect(() => {
+    getOrganizadores()
+  }, [])
+
+  const getOrganizadores = () => {
+    firebase.db
+      .collection("organizadores")
+      .orderBy("nombre", "asc")
+      .get()
+      .then((querySnapshot) => {
+        const organizadores = [];
+
+        querySnapshot.forEach((doc) => {
+          const info = doc.data();
+
+          organizadores.push({
+            id: info.idOrganizador,
+            nombreCorto: info.nombreCorto,
+            nombre: info.nombre,
+            url: info.url,
+          });
+        });
+        setOrganizadores(organizadores)
+      });
+  }
 
   const handleChangeText = (name, value) => {
     setState({ ...state, [name]: value });
