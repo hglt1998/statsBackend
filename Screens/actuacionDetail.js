@@ -1,4 +1,11 @@
-import { getDatabase, increment, onValue, ref, set, update } from "firebase/database";
+import {
+  getDatabase,
+  increment,
+  onValue,
+  ref,
+  set,
+  update,
+} from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { IconButton } from "react-native-paper";
 import {
@@ -12,6 +19,7 @@ import {
   Alert,
 } from "react-native";
 import firebase from "../database/firebase";
+import DateTimePickerModal from "@react-native-community/datetimepicker";
 
 const actuacionDetail = (props) => {
   // ----------------------------- STATES -----------------------------
@@ -26,7 +34,7 @@ const actuacionDetail = (props) => {
     tipo: "",
     ubicacion: "",
     ciudad: "",
-    enlazada: 0
+    enlazada: 0,
   };
 
   const idActuacion = props.route.params.eventoId;
@@ -42,6 +50,10 @@ const actuacionDetail = (props) => {
   const [compositor, setCompositor] = useState([]);
 
   const [location, setLocation] = useState("");
+
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
+
+  const [customDate, setCustomDate] = useState(new Date());
 
   // ----------------------------- USEEFFECT -----------------------------
   useEffect(() => {
@@ -71,20 +83,29 @@ const actuacionDetail = (props) => {
   };
 
   const handleDelete = (id) => {
-    Alert.alert("Eliminar","¿Estás seguro que deseas eliminar esta composición del repertorio?",[
-      {
-        text: "No", onPress: ()=> console.log("No selected")
-      },
-      {text: "Sí", onPress: () => {
-        const db = getDatabase();
-        set(ref(db, "repertorios/" + idActuacion + "/" + id), null);
-      }},
-    ], {cancelable: true})
-    
+    Alert.alert(
+      "Eliminar",
+      "¿Estás seguro que deseas eliminar esta composición del repertorio?",
+      [
+        {
+          text: "No",
+          onPress: () => console.log("No selected"),
+        },
+        {
+          text: "Sí",
+          onPress: () => {
+            const db = getDatabase();
+            set(ref(db, "repertorios/" + idActuacion + "/" + id), null);
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const generateID = () => {
-    const newDate = new Date();
+    let newDate = new Date();
+    isDatePickerVisible ? (newDate = customDate) : (newDate = new Date());
     const date = newDate
       .toLocaleDateString("en-US", {
         year: "numeric",
@@ -103,7 +124,9 @@ const actuacionDetail = (props) => {
     const id = generateID();
     setDatosComposicion(interpretacion);
 
-    const time = new Date().toLocaleString();
+    const time = isDatePickerVisible
+      ? customDate.toLocaleString()
+      : new Date().toLocaleString();
     try {
       set(ref(db, "repertorios/" + idActuacion + "/" + id), {
         nMarcha: interpretacion,
@@ -113,23 +136,36 @@ const actuacionDetail = (props) => {
         tituloMarcha: composicion.titulo,
         compositor: composicion.compositor,
         idCompositor: composicion.idCompositor,
-        enlazada: 1
+        enlazada: 1,
       });
+      setNuevaInterpretacion("");
+      setLocation("");
+      setIsDatePickerVisible(false);
+      setCustomDate(new Date());
+      setCompositor(interpretacion.idCompositor);
     } catch (error) {
       console.error(error);
     }
   };
 
   const handleEnlazada = async (id) => {
-    const dbRef = ref(getDatabase())
+    const dbRef = ref(getDatabase());
     try {
-      const updates = {}
-      updates[`repertorios/${idActuacion}/${id}/enlazada`] = increment(1)
-      update(dbRef, updates)
+      const updates = {};
+      updates[`repertorios/${idActuacion}/${id}/enlazada`] = increment(1);
+      update(dbRef, updates);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-  }
+  };
+
+  const showDatePicker = () => {
+    setIsDatePickerVisible(!isDatePickerVisible);
+  };
+
+  const handleChangeDate = (date) => {
+    setCustomDate(new Date(date.nativeEvent.timestamp));
+  };
 
   // ----------------------------- GETTERS -----------------------------
 
@@ -166,8 +202,8 @@ const actuacionDetail = (props) => {
   };
 
   const handleSetLocation = (ubicacion) => {
-    setLocation(ubicacion)
-  }
+    setLocation(ubicacion);
+  };
 
   // ----------------------------- VIEW -----------------------------
 
@@ -199,7 +235,11 @@ const actuacionDetail = (props) => {
         <View style={styles.inputs}>
           <View style={styles.textInputs}>
             <TextInput
-              style={{ flexDirection: "row", justifyContent: "center", width: 150 }}
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                width: 150,
+              }}
               placeholderTextColor="#646FD4"
               keyboardType="numeric"
               placeholder="Nº de composición"
@@ -210,44 +250,70 @@ const actuacionDetail = (props) => {
               value={interpretacion}
             />
           </View>
-          {actuacion.tipo === "Procesión" ?
+          {actuacion.tipo === "Procesión" ? (
             <View style={styles.textInputs}>
-            <TextInput
-              style={{ flexDirection: "row", justifyContent: "center", width: 117 }}
-              placeholderTextColor="#646FD4"
-              autoCorrect={false}
-              placeholder="Ubicación"
-              onChangeText={(value) => {
-                setLocation(value);
-              }}
-              value={location}
+              <TextInput
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  width: 110,
+                }}
+                placeholderTextColor="#646FD4"
+                autoCorrect={false}
+                placeholder="Ubicación"
+                onChangeText={(value) => {
+                  setLocation(value);
+                }}
+                value={location}
+              />
+              <IconButton
+                icon="backspace"
+                onPress={() => setLocation("")}
+                style={styles.iconButtonDelete}
+              />
+            </View>
+          ) : (
+            <></>
+          )}
+          <View style={styles.buttonDate}>
+            <IconButton
+              icon="clock-time-four-outline"
+              iconColor="white"
+              onPress={() => showDatePicker()}
+              style={styles.iconButton}
             />
-            <IconButton icon="backspace" onPress={() => setLocation("")} style={{margin: 0, padding: 0, height: 25}}  />
           </View>
-          :
-          <></>
-          }
-          
         </View>
-          <View style={styles.button}>
-            <Button
-              color="#FFFFFF"
-              title="Añadir composición"
-              onPress={() => {
-                addInterpretacion();
-                setNuevaInterpretacion("");
-                setLocation("")
-                setCompositor(interpretacion.idCompositor);
-              }}
-            />
-          </View>
+        <View style={styles.button}>
+          <Button
+            color="#FFFFFF"
+            title="Añadir composición"
+            onPress={() => {
+              addInterpretacion();
+            }}
+          />
+        </View>
+        {isDatePickerVisible && (
+          <DateTimePickerModal
+            display="inline"
+            style={styles.datePicker}
+            isDatePickerVisible={isDatePickerVisible}
+            mode="datetime"
+            value={customDate}
+            onChange={(value) => {
+              handleChangeDate(value);
+            }}
+          />
+        )}
       </View>
       {repertorios.length == 0 ? (
         <Text>No Data</Text>
       ) : (
         <>
           <View style={styles.inputs}>
-            <Text style={{justifyContent: "center"}}>Total: {repertorios.length}</Text>
+            <Text style={{ justifyContent: "center" }}>
+              Total: {repertorios.length}
+            </Text>
           </View>
           <View style={styles.table}>
             <View style={styles.tableHead}>
@@ -257,11 +323,13 @@ const actuacionDetail = (props) => {
               <View style={styles.column2}>
                 <Text style={styles.headText}>Composición</Text>
               </View>
-              {actuacion.tipo === "Procesión" ?
-              <View style={styles.column3}>
-                <Text style={styles.headText}>Ubicación</Text>
-              </View>
-              : <></>}
+              {actuacion.tipo === "Procesión" ? (
+                <View style={styles.column3}>
+                  <Text style={styles.headText}>Ubicación</Text>
+                </View>
+              ) : (
+                <></>
+              )}
               <View style={styles.column4}>
                 <Text style={styles.headText}>Hora</Text>
               </View>
@@ -272,37 +340,61 @@ const actuacionDetail = (props) => {
             {repertorios.map((repertorio) => {
               const time = String(repertorio.time);
               return (
-                <View style={repertorio.enlazada % 2 == 0 ? styles.tableRowEnlazada : styles.tableRow} key={repertorio.time} >
+                <View
+                  style={
+                    repertorio.enlazada % 2 == 0
+                      ? styles.tableRowEnlazada
+                      : styles.tableRow
+                  }
+                  key={repertorio.time}
+                >
                   <View style={styles.column1}>
                     <Text style={styles.viewText}>{repertorio.nMarcha}</Text>
                   </View>
                   <View style={styles.column2}>
                     <Text>{repertorio.tituloMarcha}</Text>
                   </View>
-                  {actuacion.tipo === "Procesión" ?
-                  <View style={styles.column3}>
-                    <Text onPress={()=> handleSetLocation(repertorio.ubicacion)}>{repertorio.ubicacion}</Text>
-                  </View>
-                  : <></>
-                  }
+                  {actuacion.tipo === "Procesión" ? (
+                    <View style={styles.column3}>
+                      <Text
+                        onPress={() => handleSetLocation(repertorio.ubicacion)}
+                      >
+                        {repertorio.ubicacion}
+                      </Text>
+                    </View>
+                  ) : (
+                    <></>
+                  )}
                   <View style={styles.column4}>
-                    <Text>{time.substring(time.indexOf(",") + 2, time.length)}</Text>
+                    <Text>
+                      {time.substring(time.indexOf(",") + 2, time.length)}
+                    </Text>
                   </View>
                   <View style={styles.column5}>
-                    <IconButton icon="delete" onPress={() => handleDelete(repertorio.idInterpretacion)} color="#0e606b" />
-                  </View>
-                  <View style={styles.column5}>
-                  <IconButton icon="link-variant" onPress={() => handleEnlazada(repertorio.idInterpretacion)} color="#0e606b" />
+                    <IconButton
+                      icon="delete"
+                      onPress={() => handleDelete(repertorio.idInterpretacion)}
+                      color="#0e606b"
+                      style={styles.iconButtonActions}
+                    />
+                    <IconButton
+                      icon="link-variant"
+                      onPress={() =>
+                        handleEnlazada(repertorio.idInterpretacion)
+                      }
+                      color="#0e606b"
+                      style={styles.iconButtonActions}
+                    />
                   </View>
                 </View>
-              )
+              );
             })}
           </View>
         </>
-        )}
-        <Button title={"Home"} onPress={handleHome} />
-        </ScrollView>
-        );
+      )}
+      <Button title={"Home"} onPress={handleHome} />
+    </ScrollView>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -311,6 +403,14 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginHorizontal: 10,
     padding: 5,
+  },
+  buttonDate: {
+    width: 40,
+    padding: 0,
+    margin: 0,
+    alignSelf: "center",
+    backgroundColor: "#646FD4",
+    borderRadius: 5,
   },
   card: {
     backgroundColor: "#FFFFFF",
@@ -333,18 +433,34 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    marginBottom: 40
+    marginBottom: 40,
   },
+  datePicker: {
+    backgroundColor: "#2E3033",
+    marginHorizontal: 10,
+    marginVertical: 10,
+    height: 380,
+  },
+  inputs: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 5,
+  },
+  iconButtonDelete: { margin: 0, padding: 0, height: 25 },
+  iconButton: { margin: 0, marginVertical: 3 },
+  iconButtonActions: { margin: 4, padding: 0 },
   textInputs: {
     flexDirection: "row",
     alignContent: "center",
     padding: 10,
     justifyContent: "space-between",
     marginVertical: 20,
+    marginRight: 0,
     borderRadius: 10,
     borderColor: "#646FD4",
     borderWidth: 1,
-    width: 170,
+    width: 165,
     alignItems: "center",
   },
   text: {
@@ -377,23 +493,17 @@ const styles = StyleSheet.create({
   switch: {
     height: 30,
   },
-  inputs: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    padding: 5,
-  },
   tableHead: {
     display: "flex",
     flexDirection: "row",
     width: "100%",
     backgroundColor: "#646FD4",
     paddingVertical: 10,
-    borderRadius: 5
+    borderRadius: 5,
   },
   table: {
     width: "100%",
-    padding: 10
+    padding: 10,
   },
   tableRow: {
     display: "flex",
@@ -401,7 +511,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.8,
     borderRadius: 5,
     borderColor: "#646FD4",
-    textAlignVertical:"center",
+    textAlignVertical: "center",
     marginVertical: 1,
   },
   tableRowEnlazada: {
@@ -410,23 +520,23 @@ const styles = StyleSheet.create({
     borderWidth: 1.2,
     borderRadius: 7,
     borderColor: "#646FD4",
-    textAlignVertical:"center",
+    textAlignVertical: "center",
     marginVertical: 1,
     backgroundColor: "#D7D7DE",
-    color: "#FFFFFF"
+    color: "#FFFFFF",
   },
   column1: {
     paddingLeft: 5,
     width: "8%",
     justifyContent: "center",
-    flexBasis: "auto"
+    flexBasis: "auto",
   },
   column2: {
     paddingLeft: 5,
     width: "30%",
     justifyContent: "center",
     flexBasis: "auto",
-    flexGrow: 1
+    flexGrow: 1,
   },
   column3: {
     paddingLeft: 15,
@@ -434,30 +544,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexBasis: 100,
     flexGrow: 0,
-    flexShrink: 2
+    flexShrink: 2,
   },
   column4: {
     paddingLeft: 10,
-    width: "19%",
+    width: "16%",
     justifyContent: "center",
     flexBasis: "auto",
-    flexGrow: 1
+    flexGrow: 1,
   },
   column5: {
     paddingRight: 10,
-    width: "15%",
-    justifyContent: "center",
+    width: "25%",
+    flexDirection: "row",
+    justifyContent: "space-around",
     flexBasis: 50,
     flexGrow: 2,
-    flexShrink: 1
+    flexShrink: 1,
   },
   viewText: {
     alignItems: "center",
-    textAlignVertical: "center"
+    textAlignVertical: "center",
   },
   headText: {
-    color: "#FFFFFF"
-  }
+    color: "#FFFFFF",
+  },
 });
 
 export default actuacionDetail;
