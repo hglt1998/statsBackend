@@ -39,8 +39,6 @@ const actuacionDetail = (props) => {
 
   const [composicion, setComposicion] = useState([]);
 
-  const [compositor, setCompositor] = useState([]);
-
   const [location, setLocation] = useState("");
 
   // ----------------------------- USEEFFECT -----------------------------
@@ -70,17 +68,80 @@ const actuacionDetail = (props) => {
     handleChangeText("isLive", value);
   };
 
-  const handleDelete = (id) => {
-    Alert.alert("Eliminar","¿Estás seguro que deseas eliminar esta composición del repertorio?",[
+  const handleEdit = (id) => {
+    Alert.alert("Acciones", "¿Qué acción deseas realizar?", [
       {
-        text: "No", onPress: ()=> console.log("No selected")
+        text: "Editar calle",
+        onPress: () => handleEditCalle(id),
       },
-      {text: "Sí", onPress: () => {
-        const db = getDatabase();
-        set(ref(db, "repertorios/" + idActuacion + "/" + id), null);
-      }},
-    ], {cancelable: true})
-    
+      {
+        text: "Eliminar interpretacion",
+        onPress: () => handleDelete(id),
+      },
+      {
+        text: "Marcar como enlazada",
+        onPress: () => handleEnlazada(id),
+      },
+    ]);
+  };
+
+  const handleEditCalle = (id) => {
+    const dbRef = ref(getDatabase());
+    Alert.prompt(
+      "Nueva ubicación",
+      "Introduzca la ubicación corregida",
+      [
+        {
+          text: "Cancelar",
+          onPress: () => console.log("Cancel"),
+        },
+        {
+          text: "Ok",
+          onPress: (text) => {
+            try {
+              const updates = {};
+              updates[`repertorios/${idActuacion}/${id}/ubicacion`] = text;
+              update(dbRef, updates);
+            } catch (error) {
+              console.log(error);
+            }
+          },
+        },
+      ],
+      "plain-text"
+    );
+  };
+
+  const handleEnlazada = async (id) => {
+    const dbRef = ref(getDatabase());
+    try {
+      const updates = {};
+      updates[`repertorios/${idActuacion}/${id}/enlazada`] = increment(1);
+      update(dbRef, updates);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDelete = (id) => {
+    Alert.alert(
+      "Eliminar",
+      "¿Estás seguro que deseas eliminar esta composición del repertorio?",
+      [
+        {
+          text: "No",
+          onPress: () => console.log("No selected"),
+        },
+        {
+          text: "Sí",
+          onPress: () => {
+            const db = getDatabase();
+            set(ref(db, "repertorios/" + idActuacion + "/" + id), null);
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const generateID = () => {
@@ -115,21 +176,22 @@ const actuacionDetail = (props) => {
         idCompositor: composicion.idCompositor,
         enlazada: 1
       });
+      setNuevaInterpretacion("");
+      setLocation("");
+      setIsDatePickerVisible(false);
+      setCustomDate(new Date());
     } catch (error) {
       console.error(error);
     }
   };
 
-  const handleEnlazada = async (id) => {
-    const dbRef = ref(getDatabase())
-    try {
-      const updates = {}
-      updates[`repertorios/${idActuacion}/${id}/enlazada`] = increment(1)
-      update(dbRef, updates)
-    } catch (error) {
-      console.log(error)
-    }
-  }
+  const showDatePicker = () => {
+    setIsDatePickerVisible(!isDatePickerVisible);
+  };
+
+  const handleChangeDate = (date) => {
+    setCustomDate(new Date(date.nativeEvent.timestamp));
+  };
 
   // ----------------------------- GETTERS -----------------------------
 
@@ -173,27 +235,25 @@ const actuacionDetail = (props) => {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.switchGroup}>
-          <Switch
-            style={styles.switch}
-            trackColor={{ false: "#646FD4", true: "#FF0000" }}
-            thumbColor={actuacion.isLive ? "#FFFFFF" : "#f4f3f4"}
-            ios_backgroundColor="#3e3e3e"
-            onValueChange={(value) => handleToggleSwitch(value)}
-            value={actuacion.isLive}
-          />
-          {actuacion.isLive ? (
-            <Text style={styles.switchFont}>DIRECTO</Text>
-          ) : (
-            <Text style={styles.switchFontFalse}>NO DIRECTO</Text>
-          )}
+      <View
+        style={[
+          styles.card,
+          actuacion.isLive
+            ? { borderColor: "#d0342c", borderWidth: 2 }
+            : { backgroundColor: "white" },
+        ]}
+        onTouchEnd={() => handleToggleSwitch(!actuacion.isLive)}
+      >
+        <View style={styles.textGroup}>
+          <Text>{actuacion.concepto}</Text>
+          <Text>
+            {new Date(actuacion.fecha.seconds * 1000)
+              .toLocaleString()
+              .toString()
+              .slice(0, -3)}
+          </Text>
         </View>
         <Text>{actuacion.organizador1}</Text>
-        <Text>{actuacion.concepto}</Text>
-        <Text>
-          {new Date(actuacion.fecha.seconds * 1000).toLocaleString().toString()}
-        </Text>
       </View>
       <View>
         <View style={styles.inputs}>
@@ -229,18 +289,28 @@ const actuacionDetail = (props) => {
           }
           
         </View>
-          <View style={styles.button}>
-            <Button
-              color="#FFFFFF"
-              title="Añadir composición"
-              onPress={() => {
-                addInterpretacion();
-                setNuevaInterpretacion("");
-                setLocation("")
-                setCompositor(interpretacion.idCompositor);
-              }}
-            />
-          </View>
+        <View style={styles.button}>
+          <Button
+            color="#FFFFFF"
+            title="Añadir composición"
+            onPress={() => {
+              addInterpretacion();
+            }}
+          />
+        </View>
+        {isDatePickerVisible && (
+          <DateTimePickerModal
+            display="inline"
+            style={styles.datePicker}
+            textColor="#d03e3e"
+            isDatePickerVisible={isDatePickerVisible}
+            mode="datetime"
+            value={customDate}
+            onChange={(value) => {
+              handleChangeDate(value);
+            }}
+          />
+        )}
       </View>
       {repertorios.length == 0 ? (
         <Text>No Data</Text>
@@ -251,48 +321,84 @@ const actuacionDetail = (props) => {
           </View>
           <View style={styles.table}>
             <View style={styles.tableHead}>
-              <View style={styles.column1}>
-                <Text style={styles.headText}>Nº</Text>
-              </View>
-              <View style={styles.column2}>
-                <Text style={styles.headText}>Composición</Text>
-              </View>
-              {actuacion.tipo === "Procesión" ?
-              <View style={styles.column3}>
-                <Text style={styles.headText}>Ubicación</Text>
-              </View>
-              : <></>}
-              <View style={styles.column4}>
-                <Text style={styles.headText}>Hora</Text>
-              </View>
-              <View style={styles.column5}>
-                <Text style={styles.headText}>Actions</Text>
-              </View>
+              <Text
+                style={[styles.whitetext, { flexBasis: 50, flexShrink: 1 }]}
+              >
+                Nº
+              </Text>
+              <Text
+                style={[
+                  styles.whitetext,
+                  { flexBasis: 200, flexGrow: 1, flexShrink: 1 },
+                ]}
+              >
+                Composición
+              </Text>
+              {actuacion.tipo === "Procesión" ? (
+                <Text
+                  style={[
+                    styles.whitetext,
+                    { flexBasis: 200, flexGrow: 1, flexShrink: 1 },
+                  ]}
+                >
+                  Ubicación
+                </Text>
+              ) : (
+                <></>
+              )}
+              <Text
+                style={[styles.whitetext, { flexBasis: 75, flexShrink: 1 }]}
+              >
+                Hora
+              </Text>
+              <Text
+                style={[styles.whitetext, { flexBasis: 75, flexShrink: 1 }]}
+              >
+                Actions
+              </Text>
             </View>
             {repertorios.map((repertorio) => {
-              const time = String(repertorio.time);
+              const time = String(repertorio.time).slice(0, -3);
               return (
-                <View style={repertorio.enlazada % 2 == 0 ? styles.tableRowEnlazada : styles.tableRow} key={repertorio.time} >
-                  <View style={styles.column1}>
-                    <Text style={styles.viewText}>{repertorio.nMarcha}</Text>
-                  </View>
-                  <View style={styles.column2}>
-                    <Text>{repertorio.tituloMarcha}</Text>
-                  </View>
-                  {actuacion.tipo === "Procesión" ?
-                  <View style={styles.column3}>
-                    <Text onPress={()=> handleSetLocation(repertorio.ubicacion)}>{repertorio.ubicacion}</Text>
-                  </View>
-                  : <></>
+                <View
+                  style={
+                    repertorio.enlazada % 2 == 0
+                      ? styles.tableRowEnlazada
+                      : styles.tableRow
                   }
-                  <View style={styles.column4}>
-                    <Text>{time.substring(time.indexOf(",") + 2, time.length)}</Text>
-                  </View>
-                  <View style={styles.column5}>
-                    <IconButton icon="delete" onPress={() => handleDelete(repertorio.idInterpretacion)} color="#0e606b" />
-                  </View>
-                  <View style={styles.column5}>
-                  <IconButton icon="link-variant" onPress={() => handleEnlazada(repertorio.idInterpretacion)} color="#0e606b" />
+                  key={repertorio.time}
+                >
+                  <Text style={{ flexBasis: 50, flexShrink: 1 }}>
+                    {repertorio.nMarcha}
+                  </Text>
+                  <Text style={{ flexBasis: 200, flexGrow: 1, flexShrink: 1 }}>
+                    {repertorio.tituloMarcha}
+                  </Text>
+                  {actuacion.tipo === "Procesión" ? (
+                    <Text
+                      onPress={() => handleSetLocation(repertorio.ubicacion)}
+                      style={{ flexBasis: 200, flexGrow: 1, flexShrink: 1 }}
+                    >
+                      {repertorio.ubicacion}
+                    </Text>
+                  ) : (
+                    <></>
+                  )}
+                  <Text style={{ flexBasis: 75, flexShrink: 1 }}>
+                    {time.substring(time.indexOf(",") + 2, time.length)}
+                  </Text>
+                  <View
+                    style={[
+                      styles.iconButtonActions,
+                      { flexBasis: 75, flexShrink: 1 },
+                    ]}
+                  >
+                    <IconButton
+                      icon="pencil"
+                      onPress={() => handleEdit(repertorio.idInterpretacion)}
+                      color="#0e606b"
+                      style={styles.iconButtonActions}
+                    />
                   </View>
                 </View>
               )
@@ -327,14 +433,27 @@ const styles = StyleSheet.create({
     shadowRadius: 4.65,
     elevation: 6,
     justifyContent: "space-between",
-    flexWrap: "wrap",
-    flexDirection: "row",
-    alignContent: "space-between",
   },
   container: {
     flex: 1,
-    marginBottom: 40
+    marginBottom: 40,
   },
+  datePicker: {
+    backgroundColor: "#2E3033",
+    marginHorizontal: 10,
+    marginVertical: 10,
+    height: 380,
+    color: "#DDDDD",
+  },
+  inputs: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 5,
+  },
+  iconButtonDelete: { margin: 0, padding: 0, height: 25 },
+  iconButton: { margin: 0, marginVertical: 3 },
+  iconButtonActions: { flexDirection: "row" },
   textInputs: {
     flexDirection: "row",
     alignContent: "center",
@@ -347,62 +466,28 @@ const styles = StyleSheet.create({
     width: 170,
     alignItems: "center",
   },
-  text: {
-    flex: 1,
-    padding: 0,
-    marginBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#cccccc",
-  },
-  topInfo: {
-    flexDirection: "row",
-    padding: 5,
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    fontWeight: "300",
-    fontSize: 11,
-  },
-  switchGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-  },
-  switchFont: {
-    color: "#d03e3e",
-    paddingLeft: 15,
-  },
-  switchFontFalse: {
-    paddingLeft: 15,
-  },
-  switch: {
-    height: 30,
-  },
-  inputs: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    padding: 5,
-  },
   tableHead: {
     display: "flex",
     flexDirection: "row",
-    width: "100%",
     backgroundColor: "#646FD4",
-    paddingVertical: 10,
-    borderRadius: 5
+    paddingVertical: 5,
+    borderRadius: 5,
+    paddingHorizontal: 10,
   },
   table: {
-    width: "100%",
-    padding: 10
+    padding: 10,
+  },
+  whitetext: {
+    color: "white",
   },
   tableRow: {
-    display: "flex",
     flexDirection: "row",
     borderWidth: 0.8,
     borderRadius: 5,
     borderColor: "#646FD4",
-    textAlignVertical:"center",
     marginVertical: 1,
+    alignItems: "center",
+    paddingHorizontal: 10,
   },
   tableRowEnlazada: {
     display: "flex",
@@ -413,51 +498,13 @@ const styles = StyleSheet.create({
     textAlignVertical:"center",
     marginVertical: 1,
     backgroundColor: "#D7D7DE",
-    color: "#FFFFFF"
-  },
-  column1: {
-    paddingLeft: 5,
-    width: "8%",
-    justifyContent: "center",
-    flexBasis: "auto"
-  },
-  column2: {
-    paddingLeft: 5,
-    width: "30%",
-    justifyContent: "center",
-    flexBasis: "auto",
-    flexGrow: 1
-  },
-  column3: {
-    paddingLeft: 15,
-    width: "30%",
-    justifyContent: "center",
-    flexBasis: 100,
-    flexGrow: 0,
-    flexShrink: 2
-  },
-  column4: {
-    paddingLeft: 10,
-    width: "19%",
-    justifyContent: "center",
-    flexBasis: "auto",
-    flexGrow: 1
-  },
-  column5: {
-    paddingRight: 10,
-    width: "15%",
-    justifyContent: "center",
-    flexBasis: 50,
-    flexGrow: 2,
-    flexShrink: 1
-  },
-  viewText: {
     alignItems: "center",
-    textAlignVertical: "center"
+    paddingHorizontal: 10,
   },
-  headText: {
-    color: "#FFFFFF"
-  }
+  textGroup: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
 });
 
 export default actuacionDetail;
