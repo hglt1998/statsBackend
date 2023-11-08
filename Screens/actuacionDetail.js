@@ -6,6 +6,14 @@ import {
   set,
   update,
 } from "firebase/database";
+import {
+  getDatabase,
+  increment,
+  onValue,
+  ref,
+  set,
+  update,
+} from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { IconButton } from "react-native-paper";
 import {
@@ -14,11 +22,11 @@ import {
   Text,
   View,
   StyleSheet,
-  Switch,
   TextInput,
   Alert,
 } from "react-native";
 import firebase from "../database/firebase";
+import DateTimePickerModal from "@react-native-community/datetimepicker";
 import DateTimePickerModal from "@react-native-community/datetimepicker";
 
 const actuacionDetail = (props) => {
@@ -35,6 +43,7 @@ const actuacionDetail = (props) => {
     ubicacion: "",
     ciudad: "",
     enlazada: 0,
+    enlazada: 0,
   };
 
   const idActuacion = props.route.params.eventoId;
@@ -48,6 +57,10 @@ const actuacionDetail = (props) => {
   const [composicion, setComposicion] = useState([]);
 
   const [location, setLocation] = useState("");
+
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
+
+  const [customDate, setCustomDate] = useState(new Date());
 
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
 
@@ -87,12 +100,13 @@ const actuacionDetail = (props) => {
         onPress: () => handleEditCalle(id),
       },
       {
-        text: "Eliminar interpretacion",
-        onPress: () => handleDelete(id),
-      },
-      {
         text: "Marcar como enlazada",
         onPress: () => handleEnlazada(id),
+      },
+      {
+        text: "Eliminar interpretacion",
+        onPress: () => handleDelete(id),
+        style: "destructive",
       },
     ]);
   };
@@ -106,6 +120,7 @@ const actuacionDetail = (props) => {
         {
           text: "Cancelar",
           onPress: () => console.log("Cancel"),
+          style: "cancel",
         },
         {
           text: "Ok",
@@ -159,6 +174,8 @@ const actuacionDetail = (props) => {
   const generateID = () => {
     let newDate = new Date();
     isDatePickerVisible ? (newDate = customDate) : (newDate = new Date());
+    let newDate = new Date();
+    isDatePickerVisible ? (newDate = customDate) : (newDate = new Date());
     const date = newDate
       .toLocaleDateString("en-US", {
         year: "numeric",
@@ -166,9 +183,7 @@ const actuacionDetail = (props) => {
         day: "2-digit",
       })
       .replace(/[^0-9]/g, "");
-
     const time = newDate.getTime().toString();
-
     return date + time;
   };
 
@@ -177,6 +192,9 @@ const actuacionDetail = (props) => {
     const id = generateID();
     setDatosComposicion(interpretacion);
 
+    const time = isDatePickerVisible
+      ? customDate.toLocaleString()
+      : new Date().toLocaleString();
     const time = isDatePickerVisible
       ? customDate.toLocaleString()
       : new Date().toLocaleString();
@@ -189,6 +207,7 @@ const actuacionDetail = (props) => {
         tituloMarcha: composicion.titulo,
         compositor: composicion.compositor,
         idCompositor: composicion.idCompositor,
+        enlazada: 1,
         enlazada: 1,
       });
       setNuevaInterpretacion("");
@@ -245,6 +264,8 @@ const actuacionDetail = (props) => {
   const handleSetLocation = (ubicacion) => {
     setLocation(ubicacion);
   };
+    setLocation(ubicacion);
+  };
 
   // ----------------------------- VIEW -----------------------------
 
@@ -274,11 +295,6 @@ const actuacionDetail = (props) => {
         <View style={styles.inputs}>
           <View style={styles.textInputs}>
             <TextInput
-              style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                width: 150,
-              }}
               placeholderTextColor="#646FD4"
               keyboardType="numeric"
               placeholder="Nº de composición"
@@ -290,13 +306,9 @@ const actuacionDetail = (props) => {
             />
           </View>
           {actuacion.tipo === "Procesión" ? (
+          {actuacion.tipo === "Procesión" ? (
             <View style={styles.textInputs}>
               <TextInput
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  width: 110,
-                }}
                 placeholderTextColor="#646FD4"
                 autoCorrect={false}
                 placeholder="Ubicación"
@@ -314,14 +326,12 @@ const actuacionDetail = (props) => {
           ) : (
             <></>
           )}
-          <View style={styles.buttonDate}>
-            <IconButton
-              icon="clock-time-four-outline"
-              iconColor="white"
-              onPress={() => showDatePicker()}
-              style={styles.iconButton}
-            />
-          </View>
+          <IconButton
+            icon="clock-time-four-outline"
+            iconColor="white"
+            onPress={() => showDatePicker()}
+            style={styles.buttonDate}
+          />
         </View>
         <View style={styles.button}>
           <Button
@@ -351,6 +361,9 @@ const actuacionDetail = (props) => {
       ) : (
         <>
           <View style={styles.inputs}>
+            <Text style={{ justifyContent: "center" }}>
+              Total: {repertorios.length}
+            </Text>
             <Text style={{ justifyContent: "center" }}>
               Total: {repertorios.length}
             </Text>
@@ -388,7 +401,7 @@ const actuacionDetail = (props) => {
                 Hora
               </Text>
               <Text
-                style={[styles.whitetext, { flexBasis: 75, flexShrink: 1 }]}
+                style={[styles.whitetext, { flexBasis: 80, flexShrink: 1 , flex: 1}]}
               >
                 Actions
               </Text>
@@ -438,9 +451,14 @@ const actuacionDetail = (props) => {
                   </View>
                 </View>
               );
+              );
             })}
           </View>
         </>
+      )}
+      <Button title={"Home"} onPress={handleHome} />
+    </ScrollView>
+  );
       )}
       <Button title={"Home"} onPress={handleHome} />
     </ScrollView>
@@ -458,6 +476,7 @@ const styles = StyleSheet.create({
     width: 40,
     padding: 0,
     margin: 0,
+    height: 50,
     alignSelf: "center",
     backgroundColor: "#646FD4",
     borderRadius: 5,
@@ -496,7 +515,6 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   iconButtonDelete: { margin: 0, padding: 0, height: 25 },
-  iconButton: { margin: 0, marginVertical: 3 },
   iconButtonActions: { flexDirection: "row" },
   textInputs: {
     flexDirection: "row",
@@ -508,7 +526,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderColor: "#646FD4",
     borderWidth: 1,
-    width: 165,
+    width: 160,
     alignItems: "center",
   },
   tableHead: {
@@ -540,6 +558,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.2,
     borderRadius: 7,
     borderColor: "#646FD4",
+    textAlignVertical: "center",
     textAlignVertical: "center",
     marginVertical: 1,
     backgroundColor: "#D7D7DE",
