@@ -6,14 +6,6 @@ import {
   set,
   update,
 } from "firebase/database";
-import {
-  getDatabase,
-  increment,
-  onValue,
-  ref,
-  set,
-  update,
-} from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { IconButton } from "react-native-paper";
 import {
@@ -26,7 +18,6 @@ import {
   Alert,
 } from "react-native";
 import firebase from "../database/firebase";
-import DateTimePickerModal from "@react-native-community/datetimepicker";
 import DateTimePickerModal from "@react-native-community/datetimepicker";
 
 const actuacionDetail = (props) => {
@@ -43,7 +34,6 @@ const actuacionDetail = (props) => {
     ubicacion: "",
     ciudad: "",
     enlazada: 0,
-    enlazada: 0,
   };
 
   const idActuacion = props.route.params.eventoId;
@@ -57,10 +47,6 @@ const actuacionDetail = (props) => {
   const [composicion, setComposicion] = useState([]);
 
   const [location, setLocation] = useState("");
-
-  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
-
-  const [customDate, setCustomDate] = useState(new Date());
 
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
 
@@ -174,8 +160,6 @@ const actuacionDetail = (props) => {
   const generateID = () => {
     let newDate = new Date();
     isDatePickerVisible ? (newDate = customDate) : (newDate = new Date());
-    let newDate = new Date();
-    isDatePickerVisible ? (newDate = customDate) : (newDate = new Date());
     const date = newDate
       .toLocaleDateString("en-US", {
         year: "numeric",
@@ -195,9 +179,6 @@ const actuacionDetail = (props) => {
     const time = isDatePickerVisible
       ? customDate.toLocaleString()
       : new Date().toLocaleString();
-    const time = isDatePickerVisible
-      ? customDate.toLocaleString()
-      : new Date().toLocaleString();
     try {
       set(ref(db, "repertorios/" + idActuacion + "/" + id), {
         nMarcha: interpretacion,
@@ -207,7 +188,6 @@ const actuacionDetail = (props) => {
         tituloMarcha: composicion.titulo,
         compositor: composicion.compositor,
         idCompositor: composicion.idCompositor,
-        enlazada: 1,
         enlazada: 1,
       });
       setNuevaInterpretacion("");
@@ -264,8 +244,6 @@ const actuacionDetail = (props) => {
   const handleSetLocation = (ubicacion) => {
     setLocation(ubicacion);
   };
-    setLocation(ubicacion);
-  };
 
   // ----------------------------- VIEW -----------------------------
 
@@ -305,7 +283,6 @@ const actuacionDetail = (props) => {
               value={interpretacion}
             />
           </View>
-          {actuacion.tipo === "Procesión" ? (
           {actuacion.tipo === "Procesión" ? (
             <View style={styles.textInputs}>
               <TextInput
@@ -361,9 +338,6 @@ const actuacionDetail = (props) => {
       ) : (
         <>
           <View style={styles.inputs}>
-            <Text style={{ justifyContent: "center" }}>
-              Total: {repertorios.length}
-            </Text>
             <Text style={{ justifyContent: "center" }}>
               Total: {repertorios.length}
             </Text>
@@ -451,14 +425,9 @@ const actuacionDetail = (props) => {
                   </View>
                 </View>
               );
-              );
             })}
           </View>
         </>
-      )}
-      <Button title={"Home"} onPress={handleHome} />
-    </ScrollView>
-  );
       )}
       <Button title={"Home"} onPress={handleHome} />
     </ScrollView>
@@ -522,7 +491,6 @@ const styles = StyleSheet.create({
     padding: 10,
     justifyContent: "space-between",
     marginVertical: 20,
-    marginRight: 0,
     borderRadius: 10,
     borderColor: "#646FD4",
     borderWidth: 1,
@@ -558,7 +526,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.2,
     borderRadius: 7,
     borderColor: "#646FD4",
-    textAlignVertical: "center",
     textAlignVertical: "center",
     marginVertical: 1,
     backgroundColor: "#D7D7DE",
