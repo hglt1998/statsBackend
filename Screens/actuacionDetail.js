@@ -7,7 +7,7 @@ import {
   update,
 } from "firebase/database";
 import React, { useEffect, useState } from "react";
-import { IconButton } from "react-native-paper";
+import { ActivityIndicator, IconButton } from "react-native-paper";
 import {
   Button,
   ScrollView,
@@ -19,6 +19,8 @@ import {
 } from "react-native";
 import firebase from "../database/firebase";
 import DateTimePickerModal from "@react-native-community/datetimepicker";
+import { Badge } from "react-native-elements";
+import BUTTON from "./variables"
 
 const actuacionDetail = (props) => {
   // ----------------------------- STATES -----------------------------
@@ -52,10 +54,22 @@ const actuacionDetail = (props) => {
 
   const [customDate, setCustomDate] = useState(new Date());
 
+  const [connection, setConnection] = useState(false);
+
   // ----------------------------- USEEFFECT -----------------------------
   useEffect(() => {
     getActuacionByID(props.route.params.eventoId);
     loadData();
+
+    const db = getDatabase();
+    const connectionRef = ref(db, ".info/connected");
+    onValue(connectionRef, (snap) => {
+      if (snap.val() === true) {
+        setConnection(true);
+      } else {
+        setConnection(false);
+      }
+    });
   }, []);
 
   // ----------------------------- HANDLERS -----------------------------
@@ -94,6 +108,10 @@ const actuacionDetail = (props) => {
         onPress: () => handleDelete(id),
         style: "destructive",
       },
+      {
+        text: "Cancelar",
+        onPress: () => console.log('Cancel pressed')
+      }
     ]);
   };
 
@@ -248,195 +266,216 @@ const actuacionDetail = (props) => {
   // ----------------------------- VIEW -----------------------------
 
   return (
-    <ScrollView style={styles.container}>
-      <View
-        style={[
-          styles.card,
-          actuacion.isLive
-            ? { borderColor: "#d0342c", borderWidth: 2 }
-            : { backgroundColor: "white" },
-        ]}
-        onTouchEnd={() => handleToggleSwitch(!actuacion.isLive)}
-      >
-        <View style={styles.textGroup}>
-          <Text>{actuacion.concepto}</Text>
-          <Text>
-            {new Date(actuacion.fecha.seconds * 1000)
-              .toLocaleString()
-              .toString()
-              .slice(0, -3)}
-          </Text>
-        </View>
-        <Text>{actuacion.organizador1}</Text>
-      </View>
-      <View>
-        <View style={styles.inputs}>
-          <View style={styles.textInputs}>
-            <TextInput
-              placeholderTextColor="#646FD4"
-              keyboardType="numeric"
-              placeholder="Nº de composición"
-              onChangeText={(value) => {
-                setNuevaInterpretacion(value);
-                setDatosComposicion(value);
-              }}
-              value={interpretacion}
-            />
-          </View>
-          {actuacion.tipo === "Procesión" ? (
-            <View style={styles.textInputs}>
-              <TextInput
-                placeholderTextColor="#646FD4"
-                autoCorrect={false}
-                placeholder="Ubicación"
-                onChangeText={(value) => {
-                  setLocation(value);
-                }}
-                value={location}
-              />
-              <IconButton
-                icon="backspace"
-                onPress={() => setLocation("")}
-                style={styles.iconButtonDelete}
-              />
+    <>
+      
+      {repertorios.length && actuacion.concepto ? (
+        <ScrollView style={styles.container}>
+          <View
+            style={[
+              styles.card,
+              actuacion.isLive
+                ? { borderColor: "#d0342c", borderWidth: 2 }
+                : { backgroundColor: "white" },
+            ]}
+            onTouchEnd={() => handleToggleSwitch(!actuacion.isLive)}
+          >
+            <View style={styles.textGroup}>
+              <Text>{actuacion.concepto}</Text>
+              <Text>
+                {new Date(actuacion.fecha.seconds * 1000)
+                  .toLocaleString()
+                  .toString()
+                  .slice(0, -3)}
+              </Text>
+              {connection ? (
+                <Badge status="success"></Badge>
+              ) : (
+                <Badge status="error"></Badge>
+              )}
             </View>
-          ) : (
-            <></>
-          )}
-          <IconButton
-            icon="clock-time-four-outline"
-            iconColor="white"
-            onPress={() => showDatePicker()}
-            style={styles.buttonDate}
-          />
-        </View>
-        <View style={styles.button}>
-          <Button
-            color="#FFFFFF"
-            title="Añadir composición"
-            onPress={() => {
-              addInterpretacion();
-            }}
-          />
-        </View>
-        {isDatePickerVisible && (
-          <DateTimePickerModal
-            display="inline"
-            style={styles.datePicker}
-            textColor="#d03e3e"
-            isDatePickerVisible={isDatePickerVisible}
-            mode="datetime"
-            value={customDate}
-            onChange={(value) => {
-              handleChangeDate(value);
-            }}
-          />
-        )}
-      </View>
-      {repertorios.length == 0 ? (
-        <Text>No Data</Text>
-      ) : (
-        <>
-          <View style={styles.inputs}>
-            <Text style={{ justifyContent: "center" }}>
-              Total: {repertorios.length}
-            </Text>
+            <Text>{actuacion.organizador1}</Text>
           </View>
-          <View style={styles.table}>
-            <View style={styles.tableHead}>
-              <Text
-                style={[styles.whitetext, { flexBasis: 50, flexShrink: 1 }]}
-              >
-                Nº
-              </Text>
-              <Text
-                style={[
-                  styles.whitetext,
-                  { flexBasis: 200, flexGrow: 1, flexShrink: 1 },
-                ]}
-              >
-                Composición
-              </Text>
+          <View>
+            <View style={styles.inputs}>
+              <View style={styles.textInputs}>
+                <TextInput
+                  placeholderTextColor={BUTTON.background}
+                  keyboardType="numeric"
+                  placeholder="Nº de composición"
+                  onChangeText={(value) => {
+                    setNuevaInterpretacion(value);
+                    setDatosComposicion(value);
+                  }}
+                  value={interpretacion}
+                />
+              </View>
               {actuacion.tipo === "Procesión" ? (
-                <Text
-                  style={[
-                    styles.whitetext,
-                    { flexBasis: 200, flexGrow: 1, flexShrink: 1 },
-                  ]}
-                >
-                  Ubicación
-                </Text>
+                <View style={styles.textInputs}>
+                  <TextInput
+                    placeholderTextColor={BUTTON.background}
+                    autoCorrect={false}
+                    placeholder="Ubicación"
+                    onChangeText={(value) => {
+                      setLocation(value);
+                    }}
+                    value={location}
+                  />
+                  <IconButton
+                    icon="backspace"
+                    onPress={() => setLocation("")}
+                    style={styles.iconButtonDelete}
+                  />
+                </View>
               ) : (
                 <></>
               )}
-              <Text
-                style={[styles.whitetext, { flexBasis: 75, flexShrink: 1 }]}
-              >
-                Hora
-              </Text>
-              <Text
-                style={[styles.whitetext, { flexBasis: 80, flexShrink: 1 , flex: 1}]}
-              >
-                Actions
-              </Text>
+              <IconButton
+                icon="clock-time-four-outline"
+                iconColor="white"
+                onPress={() => showDatePicker()}
+                style={styles.buttonDate}
+              />
             </View>
-            {repertorios.map((repertorio) => {
-              const time = String(repertorio.time).slice(0, -3);
-              return (
-                <View
-                  style={
-                    repertorio.enlazada % 2 == 0
-                      ? styles.tableRowEnlazada
-                      : styles.tableRow
-                  }
-                  key={repertorio.time}
-                >
-                  <Text style={{ flexBasis: 50, flexShrink: 1 }}>
-                    {repertorio.nMarcha}
+            <View style={styles.button}>
+              <Button
+                color="#FFFFFF"
+                title="Añadir composición"
+                onPress={() => {
+                  addInterpretacion();
+                }}
+              />
+            </View>
+            {isDatePickerVisible && (
+              <DateTimePickerModal
+                display="inline"
+                style={styles.datePicker}
+                textColor="#d03e3e"
+                isDatePickerVisible={isDatePickerVisible}
+                mode="datetime"
+                value={customDate}
+                onChange={(value) => {
+                  handleChangeDate(value);
+                }}
+              />
+            )}
+          </View>
+          {repertorios.length == 0 ? (
+            <Text>No Data</Text>
+          ) : (
+            <>
+              <View style={styles.inputs}>
+                <Text style={{ justifyContent: "center" }}>
+                  Total: {repertorios.length}
+                </Text>
+              </View>
+              <View style={styles.table}>
+                <View style={styles.tableHead}>
+                  <Text
+                    style={[styles.whitetext, { flexBasis: 50, flexShrink: 1 }]}
+                  >
+                    Nº
                   </Text>
-                  <Text style={{ flexBasis: 200, flexGrow: 1, flexShrink: 1 }}>
-                    {repertorio.tituloMarcha}
+                  <Text
+                    style={[
+                      styles.whitetext,
+                      { flexBasis: 200, flexGrow: 1, flexShrink: 1 },
+                    ]}
+                  >
+                    Composición
                   </Text>
                   {actuacion.tipo === "Procesión" ? (
                     <Text
-                      onPress={() => handleSetLocation(repertorio.ubicacion)}
-                      style={{ flexBasis: 200, flexGrow: 1, flexShrink: 1 }}
+                      style={[
+                        styles.whitetext,
+                        { flexBasis: 200, flexGrow: 1, flexShrink: 1 },
+                      ]}
                     >
-                      {repertorio.ubicacion}
+                      Ubicación
                     </Text>
                   ) : (
                     <></>
                   )}
-                  <Text style={{ flexBasis: 75, flexShrink: 1 }}>
-                    {time.substring(time.indexOf(",") + 2, time.length)}
+                  <Text
+                    style={[styles.whitetext, { flexBasis: 75, flexShrink: 1 }]}
+                  >
+                    Hora
                   </Text>
-                  <View
+                  <Text
                     style={[
-                      styles.iconButtonActions,
-                      { flexBasis: 75, flexShrink: 1 },
+                      styles.whitetext,
+                      { flexBasis: 80, flexShrink: 1, flex: 1 },
                     ]}
                   >
-                    <IconButton
-                      icon="pencil"
-                      onPress={() => handleEdit(repertorio.idInterpretacion)}
-                      color="#0e606b"
-                      style={styles.iconButtonActions}
-                    />
-                  </View>
+                    Actions
+                  </Text>
                 </View>
-              );
-            })}
-          </View>
-        </>
+                {repertorios.map((repertorio) => {
+                  const time = String(repertorio.time).slice(0, -3);
+                  return (
+                    <View
+                      style={
+                        repertorio.enlazada % 2 == 0
+                          ? styles.tableRowEnlazada
+                          : styles.tableRow
+                      }
+                      key={repertorio.time}
+                    >
+                      <Text style={{ flexBasis: 50, flexShrink: 1 }}>
+                        {repertorio.nMarcha}
+                      </Text>
+                      <Text
+                        style={{ flexBasis: 200, flexGrow: 1, flexShrink: 1 }}
+                      >
+                        {repertorio.tituloMarcha}
+                      </Text>
+                      {actuacion.tipo === "Procesión" ? (
+                        <Text
+                          onPress={() =>
+                            handleSetLocation(repertorio.ubicacion)
+                          }
+                          style={{ flexBasis: 200, flexGrow: 1, flexShrink: 1 }}
+                        >
+                          {repertorio.ubicacion}
+                        </Text>
+                      ) : (
+                        <></>
+                      )}
+                      <Text style={{ flexBasis: 75, flexShrink: 1 }}>
+                        {time.substring(time.indexOf(",") + 2, time.length)}
+                      </Text>
+                      <View
+                        style={[
+                          styles.iconButtonActions,
+                          { flexBasis: 75, flexShrink: 1 },
+                        ]}
+                      >
+                        <IconButton
+                          icon="pencil"
+                          onPress={() =>
+                            handleEdit(repertorio.idInterpretacion)
+                          }
+                          color="#0e606b"
+                          style={styles.iconButtonActions}
+                        />
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          )}
+          <Button title={"Home"} onPress={handleHome} />
+        </ScrollView>
+      ) : (
+        <ActivityIndicator animating={true} color={BUTTON.background} size={100} style={{padding: 0, margin: '50%'}}></ActivityIndicator>
       )}
-      <Button title={"Home"} onPress={handleHome} />
-    </ScrollView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#646FD4",
+    backgroundColor: BUTTON.background,
     borderRadius: 5,
     marginHorizontal: 10,
     padding: 5,
@@ -447,7 +486,7 @@ const styles = StyleSheet.create({
     margin: 0,
     height: 50,
     alignSelf: "center",
-    backgroundColor: "#646FD4",
+    backgroundColor: BUTTON.background,
     borderRadius: 5,
   },
   card: {
@@ -492,7 +531,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginVertical: 20,
     borderRadius: 10,
-    borderColor: "#646FD4",
+    borderColor: BUTTON.background,
     borderWidth: 1,
     width: 160,
     alignItems: "center",
@@ -500,7 +539,7 @@ const styles = StyleSheet.create({
   tableHead: {
     display: "flex",
     flexDirection: "row",
-    backgroundColor: "#646FD4",
+    backgroundColor: BUTTON.background,
     paddingVertical: 5,
     borderRadius: 5,
     paddingHorizontal: 10,
@@ -515,7 +554,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderWidth: 0.8,
     borderRadius: 5,
-    borderColor: "#646FD4",
+    borderColor: BUTTON.background,
     marginVertical: 1,
     alignItems: "center",
     paddingHorizontal: 10,
@@ -525,7 +564,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderWidth: 1.2,
     borderRadius: 7,
-    borderColor: "#646FD4",
+    borderColor: BUTTON.background,
     textAlignVertical: "center",
     marginVertical: 1,
     backgroundColor: "#D7D7DE",

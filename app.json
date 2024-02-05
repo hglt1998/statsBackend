@@ -4,6 +4,7 @@
     "slug": "bmmstats",
     "version": "2.0.0",
     "orientation": "portrait",
+    "jsEngine": "hermes",
     "icon": "./assets/ColorSinFondo.png",
     "splash": {
       "image": "./assets/ColorSinFondo.png",
@@ -20,16 +21,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.hglt1998.bmmstats",
-      "runtimeVersion": {
-        "policy": "sdkVersion"
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
-      },
-      "package": "com.hglt1998.bmmstats",
+      "jsEngine": "hermes",
       "runtimeVersion": "1.0.0"
     },
     "web": {
@@ -40,6 +32,12 @@
         "projectId": "e558cd69-b8bf-4ee0-8027-045800974a6b"
       }
     },
-    "userInterfaceStyle": "automatic"
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "runtimeVersion": {
+        "policy": "appVersion"
+      },
+      "jsEngine": "hermes"
+    }
   }
 }

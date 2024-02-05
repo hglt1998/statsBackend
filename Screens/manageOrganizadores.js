@@ -166,13 +166,13 @@ const s = StyleSheet.create({
   },
   input: {
     color: "#000000",
-    fontSize: "15",
+    fontSize: 15,
     flexWrap: "wrap",
     flexShrink: 0.1,
     flex: 1,
     paddingRight: 20,
   },
-  label: { width: 100, fontSize: "15" },
+  label: { width: 100, fontSize: 15 },
   list: {
     flex: 1,
     flexDirection: "column",

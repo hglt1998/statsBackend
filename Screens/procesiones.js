@@ -3,13 +3,14 @@ import {
   View,
   StatusBar,
   ScrollView,
-  Button,
   Text,
   RefreshControl,
   StyleSheet,
+  Pressable,
 } from "react-native";
 import firebase from "../database/firebase";
 import { Avatar, ListItem } from "react-native-elements";
+import BUTTON from "./variables"
 
 const wait = (timeout) => {
   return new Promise((resolve) => setTimeout(resolve, timeout));
@@ -47,6 +48,7 @@ function events({ navigation }) {
 
   return (
     <ScrollView
+      style={{ backgroundColor: "#fffefb" }}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={loadData} />
       }
@@ -59,32 +61,24 @@ function events({ navigation }) {
         hidden={false}
       />
       <View style={styles.button}>
-        <Button
-          color={"#FFFFFF"}
-          title={"Crear actuación"}
-          onPress={() => navigation.navigate("createActuacion")}
-        />
+        <Pressable onPress={() => navigation.navigate("createActuacion")}>
+          <Text style={styles.textButton}>Crear actuación</Text>
+        </Pressable>
       </View>
       <View style={styles.button}>
-        <Button
-          color={"#FFFFFF"}
-          title={"Crear composición"}
-          onPress={() => navigation.navigate("createComposicion")}
-        />
+        <Pressable onPress={() => navigation.navigate("createComposicion")}>
+          <Text style={styles.textButton}>Crear composición</Text>
+        </Pressable>
       </View>
       <View style={styles.button}>
-        <Button
-          color={"#FFFFFF"}
-          title={"Crear compositor"}
-          onPress={() => navigation.navigate("createCompositor")}
-        />
+        <Pressable onPress={() => navigation.navigate("createCompositor")}>
+          <Text style={styles.textButton}>Crear compositor</Text>
+        </Pressable>
       </View>
       <View style={styles.button}>
-        <Button
-          color={"#FFFFFF"}
-          title={"Organizadores"}
-          onPress={() => navigation.navigate("manageOrganizadores")}
-        />
+        <Pressable onPress={() => navigation.navigate("manageOrganizadores")}>
+          <Text style={styles.textButton}>Organizadores</Text>
+        </Pressable>
       </View>
 
       {events.map((evento) => {
@@ -123,6 +117,14 @@ function events({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  textButton: {
+    fontWeight: "bold",
+    margin: "auto",
+    textAlign: "center",
+    paddingVertical: 8,
+    fontSize: 18,
+    color: BUTTON.text
+  },
   item: {
     padding: 5,
     backgroundColor: "#FFFFFF",
@@ -140,18 +142,10 @@ const styles = StyleSheet.create({
   },
   button: {
     padding: 5,
-    backgroundColor: "#646FD4",
+    backgroundColor: BUTTON.background,
     padding: 5,
     margin: 5,
     borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
-    elevation: 6,
   },
 });
 

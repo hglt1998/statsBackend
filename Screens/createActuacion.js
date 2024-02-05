@@ -13,6 +13,7 @@ import firebase from "../database/firebase";
 import { SegmentedButtons } from 'react-native-paper'
 import { tiposActuaciones } from "../database/constants";
 import { getDatabase, set, ref } from "firebase/database";
+import BUTTON from "./variables"
 
 const createActuacion = (props) => {
   const database = getDatabase();
@@ -243,7 +244,7 @@ const createActuacion = (props) => {
 const styles = StyleSheet.create({
   button: {
     marginRight: 0,
-    backgroundColor: "#646FD4",
+    backgroundColor: BUTTON.background,
     borderRadius: 5,
   },
   container: {
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
   },
   inputGroup: {
     fontSize: 18,
-    color: "#888",
+    color: BUTTON.background,
     textDecorationColor: "#000000",
     flex: 1,
     padding: 0,
@@ -290,7 +291,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.27,
     shadowRadius: 4.65,
     elevation: 6,
-    borderColor: "#646FD4",
+    borderColor: BUTTON.background,
     borderWidth: 0.5,
   },
   picker: {
@@ -315,7 +316,7 @@ const styles = StyleSheet.create({
   textLabel: {
     left: 5,
     marginVertical: 7,
-    color: "#646FD4",
+    color: BUTTON.background,
   },
 });
 
