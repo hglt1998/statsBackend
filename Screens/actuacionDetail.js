@@ -16,6 +16,8 @@ import {
   StyleSheet,
   TextInput,
   Alert,
+  Dimensions,
+  Pressable,
 } from "react-native";
 import firebase from "../database/firebase";
 import DateTimePickerModal from "@react-native-community/datetimepicker";
@@ -56,10 +58,17 @@ const actuacionDetail = (props) => {
 
   const [connection, setConnection] = useState(false);
 
+  const [searchVisible, setsearchVisible] = useState(false)
+
+  const [listado, setlistado] = useState([])
+
+const [suggestions, setSuggestions] = useState([])
+
   // ----------------------------- USEEFFECT -----------------------------
   useEffect(() => {
     getActuacionByID(props.route.params.eventoId);
     loadData();
+    loadComposiciones();
 
     const db = getDatabase();
     const connectionRef = ref(db, ".info/connected");
@@ -207,13 +216,15 @@ const actuacionDetail = (props) => {
         compositor: composicion.compositor,
         idCompositor: composicion.idCompositor,
         enlazada: 1,
+      }).finally(error => {
+        console.log(time);
       });
       setNuevaInterpretacion("");
       setLocation("");
       setIsDatePickerVisible(false);
       setCustomDate(new Date());
     } catch (error) {
-      console.error(error);
+      console.log(error);
     }
   };
 
@@ -248,8 +259,28 @@ const actuacionDetail = (props) => {
       if (data) {
         setRepertorios(Object.values(data).reverse());
       }
-    });
+    })
   };
+
+  const loadComposiciones = async () => {
+    await firebase.db.collection("composiciones").get().then((querySnapshot) => {
+      const listado = []
+
+      querySnapshot.forEach((doc) => {
+        const info = doc.data();
+
+        listado.push({
+          compositor: info.compositor,
+          titulo: info.titulo,
+          idFirebase: doc.id,
+          idComposicion: info.idComposicion
+        })
+      })
+      setlistado(listado)
+    })
+
+
+  }
 
   const setDatosComposicion = (nMarcha) => {
     const doc = firebase.db.collection("composiciones").doc(nMarcha);
@@ -259,17 +290,66 @@ const actuacionDetail = (props) => {
     });
   };
 
-  const handleSetLocation = (ubicacion) => {
-    setLocation(ubicacion);
-  };
+
+  const handleModalInput = (value) => {
+    if (value.length > 3) {
+      setSuggestions(listado.filter((marcha) => marcha.titulo.toLowerCase().includes(value)))
+    } else {
+      setSuggestions([])
+    }
+  }
 
   // ----------------------------- VIEW -----------------------------
 
   return (
     <>
-      
-      {repertorios.length && actuacion.concepto ? (
-        <ScrollView style={styles.container}>
+      {repertorios.length || actuacion.concepto ? (
+        <ScrollView keyboardShouldPersistTaps="always" style={styles.container}>
+          {searchVisible ? (
+            <View style={styles.modalView}>
+              <IconButton
+                icon="close"
+                style={{ backgroundColor: "white" }}
+                onPress={() => {
+                  setsearchVisible(false)
+                  setSuggestions([])
+                }}
+              />
+              {suggestions.length >= 1 ? (
+                <View style={styles.suggestionsGrid}>
+                  {suggestions.map((marcha) => {
+                    return (
+                      <Pressable
+                        style={styles.pressable}
+                        onPress={() => {
+                          setNuevaInterpretacion(marcha.idFirebase)
+                          setDatosComposicion(marcha.idFirebase)
+                          setsearchVisible(false)
+                        }}
+                      >
+                        <Text numberOfLines={1}>{marcha.titulo}</Text>
+                        <Text>{marcha.compositor}</Text>
+                        <Text>{marcha.idComposicion}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              ) : (
+                <></>
+              )}
+              <TextInput
+                onChangeText={(value) => handleModalInput(value)}
+                style={styles.modalInput}
+                autoFocus={true}
+                placeholder="nombre"
+                autoCapitalize="none"
+                autoCorrect={false}
+              ></TextInput>
+            </View>
+          ) : (
+            <></>
+          )}
+
           <View
             style={[
               styles.card,
@@ -307,6 +387,11 @@ const actuacionDetail = (props) => {
                     setDatosComposicion(value);
                   }}
                   value={interpretacion}
+                />
+                <IconButton
+                  icon="magnify"
+                  onPress={() => setsearchVisible(true)}
+                  style={styles.iconButtonDelete}
                 />
               </View>
               {actuacion.tipo === "Procesión" ? (
@@ -431,7 +516,7 @@ const actuacionDetail = (props) => {
                       {actuacion.tipo === "Procesión" ? (
                         <Text
                           onPress={() =>
-                            handleSetLocation(repertorio.ubicacion)
+                            handleSetLocation(setLocation(repertorio.ubicacion))
                           }
                           style={{ flexBasis: 200, flexGrow: 1, flexShrink: 1 }}
                         >
@@ -467,7 +552,12 @@ const actuacionDetail = (props) => {
           <Button title={"Home"} onPress={handleHome} />
         </ScrollView>
       ) : (
-        <ActivityIndicator animating={true} color={BUTTON.background} size={100} style={{padding: 0, margin: '50%'}}></ActivityIndicator>
+        <ActivityIndicator
+          animating={true}
+          color={BUTTON.background}
+          size={100}
+          style={{ padding: 0, margin: "50%" }}
+        ></ActivityIndicator>
       )}
     </>
   );
@@ -524,6 +614,33 @@ const styles = StyleSheet.create({
   },
   iconButtonDelete: { margin: 0, padding: 0, height: 25 },
   iconButtonActions: { flexDirection: "row" },
+  modalInput: {
+    textAlign: "left",
+    borderRadius: 5,
+    paddingLeft: 10,
+    backgroundColor: "white",
+    width: 150,
+    height: 50,
+    alignSelf: "center",
+    position: 'absolute',
+    top: 350,
+  },
+  modalView: {
+    position: "absolute",
+    backgroundColor: "#00000090",
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height,
+    justifyContent: "flex-start",
+    zIndex: 10000,
+    paddingHorizontal: 10,
+    paddingTop: 10
+  },
+  pressable: {
+    backgroundColor: 'white',
+    width: 150,
+    borderRadius: 5,
+    padding: 5,
+  },  
   textInputs: {
     flexDirection: "row",
     alignContent: "center",
@@ -549,6 +666,14 @@ const styles = StyleSheet.create({
   },
   whitetext: {
     color: "white",
+  },
+  suggestionsGrid: {
+    flex: 3,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    rowGap: 5,
+    columnGap: 5,
+    overflow: 'scroll',
   },
   tableRow: {
     flexDirection: "row",

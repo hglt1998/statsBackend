@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import firebase from "../database/firebase";
 import { KeyboardAvoidingView } from "react-native";
 import { StyleSheet } from "react-native";
+import { ListItem } from "react-native-elements";
 
 const manageOrganizadores = () => {
   const initialState = {
@@ -122,10 +123,12 @@ const manageOrganizadores = () => {
       <View style={s.list}>
         {organizadores.map((organizador, index) => {
           return (
-            <View key={index} style={s.card}>
-              <Text>{organizador.nombreCorto}</Text>
-              <Text style={s.nombre}>{organizador.nombre}</Text>
-            </View>
+            <ListItem key={index}>
+              <ListItem.Content>
+                <ListItem.Title>{organizador.nombreCorto}</ListItem.Title>
+                <ListItem.Subtitle>{organizador.nombre}</ListItem.Subtitle>
+              </ListItem.Content>
+            </ListItem>
           );
         })}
       </View>

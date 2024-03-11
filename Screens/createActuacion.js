@@ -10,16 +10,20 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import firebase from "../database/firebase";
-import { SegmentedButtons } from 'react-native-paper'
-import { tiposActuaciones } from "../database/constants";
-import { getDatabase, set, ref } from "firebase/database";
+import { ActivityIndicator, SegmentedButtons } from 'react-native-paper'
+import { tagsActuacion, tiposActuaciones } from "../database/constants";
+import { getDatabase, set, ref, onValue } from "firebase/database";
 import BUTTON from "./variables"
+import { Badge } from "react-native-elements";
 
 const createActuacion = (props) => {
   const database = getDatabase();
-  const [date] = useState(new Date());
+  const [date, setDate] = useState(new Date());
   const [isLive, setIsLive] = useState(false);
-  const [organizadores, setOrganizadores] = useState([])
+  const [organizadores, setOrganizadores] = useState([]);
+  const [connection, setConnection] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [visible, setVisible] = useState(false)
 
   const ref1 = useRef();
   const ref2 = useRef();
@@ -39,11 +43,22 @@ const createActuacion = (props) => {
     tipoActuacion: "",
     ubicacion: "",
     ciudad: "",
+    tagActuacion: "",
   });
 
   useEffect(() => {
-    getOrganizadores()
-  }, [])
+    getOrganizadores();
+
+    const db = getDatabase();
+    const connectionRef = ref(db, ".info/connected");
+    onValue(connectionRef, (snap) => {
+      if (snap.val() === true) {
+        setConnection(true);
+      } else {
+        setConnection(false);
+      }
+    });
+  }, []);
 
   const getOrganizadores = () => {
     firebase.db
@@ -63,9 +78,9 @@ const createActuacion = (props) => {
             url: info.url,
           });
         });
-        setOrganizadores(organizadores)
+        setOrganizadores(organizadores);
       });
-  }
+  };
 
   const handleChangeText = (name, value) => {
     setState({ ...state, [name]: value });
@@ -81,6 +96,7 @@ const createActuacion = (props) => {
       alert("Hay campos sin rellenar");
     } else {
       try {
+        setLoading(true);
         const actuacion = await firebase.db.collection("actuaciones").add({
           data: null,
         });
@@ -94,150 +110,181 @@ const createActuacion = (props) => {
             idRepertorio: id,
             idActuacion: id,
             concepto: state.concepto,
-            fecha: new Date(state.fecha),
+            fecha: date,
             isLive: state.isLive,
             organizador1: state.organizador1,
             organizador2: state.organizador2,
             tipo: state.tipoActuacion,
             ubicacion: state.ubicacion,
             ciudad: state.ciudad,
-          });
+            tagActuacion: state.tagActuacion ? state.tagActuacion : null,
+          }).catch(error => {
+            console.log(state.fecha, error);
+          })
 
         await set(ref(database, "repertorios/" + id), {});
 
         setState({ ...state, idRepertorio: id });
+        setLoading(false);
         await props.navigation.navigate("actuacionDetail", { eventoId: id });
       } catch (error) {
-        console.error(error);
+        setLoading(false);
+        console.log(state.fecha, error);
+        return (
+          <View>
+            <Text>ERROR</Text>
+          </View>
+        );
       }
     }
   };
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-      <ScrollView style={styles.container}>
-        <View style={styles.card}>
-          <View style={styles.switch}>
-            <View style={styles.switchGroup}>
-              <Switch
-                trackColor={{ false: "#767577", true: "#81b0ff" }}
-                thumbColor={isLive ? "#f5dd4b" : "#f4f3f4"}
-                ios_backgroundColor="#3e3e3e"
-                onValueChange={(value) => handleChangeText("isLive", value)}
-                value={state.isLive}
-              />
-              {state.isLive ? (
-                <Text style={styles.switchFont}>DIRECTO</Text>
-              ) : (
-                <Text style={styles.switchFontFalse}>NO DIRECTO</Text>
-              )}
-            </View>
-            <View style={styles.button}>
-              <Button
-                color="#FFFFFF"
-                title={"Guardar"}
-                onPress={saveActuacion}
-              />
-            </View>
-          </View>
-          <View style={styles.picker}>
-            <SegmentedButtons
-            value={state.tipoActuacion}
-            onValueChange={(change) => {setState({...state, tipoActuacion: change})}}
-            buttons={[
-              {
-                value: tiposActuaciones[0].value,
-                label: tiposActuaciones[0].key
-              },
-              {
-                value: tiposActuaciones[1].value,
-                label: tiposActuaciones[1].key
-              },
-              {
-                value: tiposActuaciones[2].value,
-                label: tiposActuaciones[2].key
-              }
-            ]}
-            density="regular"
-            style={{width: 300}}
-            >
-            </SegmentedButtons>
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.textLabel}>Concepto</Text>
-            <TextInput
-              style={styles.placeholder}
-              placeholderTextColor="#46596B"
-              placeholder="Concierto de..."
-              onChangeText={(value) => handleChangeText("concepto", value)}
-              ref={ref1}
-              onSubmitEditing={() => ref2.current.focus()}
-              returnKeyType="next"
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.textLabel}>Fecha</Text>
-            <TextInput
-              style={styles.placeholder}
-              placeholderTextColor="#46596B"
-              placeholder="MM/DD/YYYY HH:MM"
-              onChangeText={(value) => handleChangeText("fecha", value)}
-              ref={ref2}
-              onSubmitEditing={() => ref3.current.focus()}
-              returnKeyType="next"
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.textLabel}>Ubicación</Text>
-            <TextInput
-              style={styles.placeholder}
-              placeholderTextColor="#46596B"
-              placeholder="Lugar del evento"
-              onChangeText={(value) => handleChangeText("ubicacion", value)}
-              ref={ref3}
-              onSubmitEditing={() => ref4.current.focus()}
-              returnKeyType="next"
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.textLabel}>Ciudad</Text>
-            <TextInput
-              style={styles.placeholder}
-              placeholderTextColor="#46596B"
-              placeholder="Ciudad del evento"
-              onChangeText={(value) => handleChangeText("ciudad", value)}
-              ref={ref4}
-              onSubmitEditing={() => ref5.current.focus()}
-              returnKeyType="next"
-            />
-          </View>
+    <>
+      {!loading ? (
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+          <ScrollView style={styles.container}>
+            <View style={styles.card}>
+              <View style={styles.switch}>
+                <View style={styles.switchGroup}>
+                  <Switch
+                    trackColor={{ false: "#767577", true: "#81b0ff" }}
+                    thumbColor={isLive ? "#f5dd4b" : "#f4f3f4"}
+                    ios_backgroundColor="#3e3e3e"
+                    onValueChange={(value) => handleChangeText("isLive", value)}
+                    value={state.isLive}
+                  />
+                  {state.isLive ? (
+                    <Text style={styles.switchFont}>DIRECTO</Text>
+                  ) : (
+                    <Text style={styles.switchFontFalse}>NO DIRECTO</Text>
+                  )}
+                </View>
+                <View style={styles.button}>
+                  <Button
+                    color="#FFFFFF"
+                    title={"Guardar"}
+                    onPress={saveActuacion}
+                  />
+                </View>
+                {connection ? (
+                  <Badge status="success"></Badge>
+                ) : (
+                  <Badge status="error"></Badge>
+                )}
+              </View>
+              <View style={styles.picker}>
+                <SegmentedButtons
+                  value={state.tipoActuacion}
+                  onValueChange={(change) => {
+                    setState({ ...state, tipoActuacion: change });
+                  }}
+                  buttons={tiposActuaciones}
+                  density="regular"
+                  style={{ width: 300 }}
+                  theme={{ roundness: 0 }}
+                ></SegmentedButtons>
+              </View>
+              <View style={styles.picker}>
+                <SegmentedButtons
+                  value={state.tagActuacion}
+                  onValueChange={(change) => {
+                    setState({ ...state, tagActuacion: change });
+                  }}
+                  buttons={tagsActuacion}
+                  density="regular"
+                  style={{ width: 300 }}
+                  theme={{ roundness: 0 }}
+                ></SegmentedButtons>
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.textLabel}>Concepto</Text>
+                <TextInput
+                  style={styles.placeholder}
+                  placeholderTextColor="#46596B"
+                  placeholder="Concierto de..."
+                  onChangeText={(value) => handleChangeText("concepto", value)}
+                  ref={ref1}
+                  onSubmitEditing={() => ref2.current.focus()}
+                  returnKeyType="next"
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.textLabel}>Fecha</Text>
+                <TextInput
+                  style={styles.placeholder}
+                  placeholderTextColor="#46596B"
+                  placeholder="MM/DD/YYYY HH:MM"
+                  onChangeText={(value) => handleChangeText("fecha", value)}
+                  ref={ref2}
+                  onSubmitEditing={() => ref3.current.focus()}
+                  returnKeyType="next"
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.textLabel}>Ubicación</Text>
+                <TextInput
+                  style={styles.placeholder}
+                  placeholderTextColor="#46596B"
+                  placeholder="Lugar del evento"
+                  onChangeText={(value) => handleChangeText("ubicacion", value)}
+                  ref={ref3}
+                  onSubmitEditing={() => ref4.current.focus()}
+                  returnKeyType="next"
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.textLabel}>Ciudad</Text>
+                <TextInput
+                  style={styles.placeholder}
+                  placeholderTextColor="#46596B"
+                  placeholder="Ciudad del evento"
+                  onChangeText={(value) => handleChangeText("ciudad", value)}
+                  ref={ref4}
+                  onSubmitEditing={() => ref5.current.focus()}
+                  returnKeyType="next"
+                />
+              </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.textLabel}>Organizador</Text>
-            <TextInput
-              style={styles.placeholder}
-              placeholderTextColor="#46596B"
-              placeholder={"Nombre del organizador"}
-              onChangeText={(value) => handleChangeText("organizador1", value)}
-              ref={ref5}
-              onSubmitEditing={() => ref6.current.focus()}
-              returnKeyType="next"
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.textLabel}>2º organizador (Opcional)</Text>
-            <TextInput
-              style={styles.placeholder}
-              placeholderTextColor="#46596B"
-              placeholder={"Organizador 2"}
-              onChangeText={(value) => handleChangeText("organizador2", value)}
-              ref={ref6}
-              returnKeyType="next"
-            />
-          </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+              <View style={styles.inputGroup}>
+                <Text style={styles.textLabel}>Organizador</Text>
+                <TextInput
+                  style={styles.placeholder}
+                  placeholderTextColor="#46596B"
+                  placeholder={"Nombre del organizador"}
+                  onChangeText={(value) =>
+                    handleChangeText("organizador1", value)
+                  }
+                  ref={ref5}
+                  onSubmitEditing={() => ref6.current.focus()}
+                  returnKeyType="next"
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.textLabel}>2º organizador (Opcional)</Text>
+                <TextInput
+                  style={styles.placeholder}
+                  placeholderTextColor="#46596B"
+                  placeholder={"Organizador 2"}
+                  onChangeText={(value) =>
+                    handleChangeText("organizador2", value)
+                  }
+                  ref={ref6}
+                  returnKeyType="next"
+                />
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      ) : (
+        <ActivityIndicator
+          animating={true}
+          color={BUTTON.background}
+          size={100}
+          style={{ padding: 0, margin: "50%" }}
+        ></ActivityIndicator>
+      )}
+    </>
   );
 };
 

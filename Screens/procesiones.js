@@ -7,14 +7,18 @@ import {
   RefreshControl,
   StyleSheet,
   Pressable,
+  Alert,
 } from "react-native";
 import firebase from "../database/firebase";
 import { Avatar, ListItem } from "react-native-elements";
 import BUTTON from "./variables"
+import { getDatabase, ref, set } from "firebase/database";
 
 const wait = (timeout) => {
   return new Promise((resolve) => setTimeout(resolve, timeout));
 };
+
+const db = getDatabase()
 
 function events({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
@@ -45,6 +49,27 @@ function events({ navigation }) {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleDelete = (id) => {
+    Alert.alert("Eliminar", "¿Estás seguro que deseas eliminar esta actuación?",
+    [{
+      text: "Sí",
+      onPress: () => {
+        firebase.db.collection("actuaciones").doc(id).delete()
+        set(ref(db, 'repertorios/' + id), null).finally(success => {
+          
+        })
+        
+      }
+    },
+  {
+    text: "No",
+    onPress: () => {
+      console.log("Rejected");
+    },
+    style: "destructive"
+  }])
+  }
 
   return (
     <ScrollView
@@ -94,6 +119,7 @@ function events({ navigation }) {
                 eventoId: evento.id,
               });
             }}
+            onLongPress={() => handleDelete(evento.id)}
           >
             <ListItem.Chevron />
             <Avatar

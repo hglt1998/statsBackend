@@ -19,20 +19,31 @@ export const tiposMarcha = [
 
 export const tiposActuaciones = [
     {
-        key: "Procesión",
+        label: "Procesión",
         value: "Procesión"
     },
     {
-        key: "Concierto",
+        label: "Concierto",
         value: "Concierto"
     },
     {
-        key: "Pregón",
+        label: "Pregón",
         value: "Pregón"
     },
+]
+
+export const tagsActuacion = [
     {
-        key: "Pasacalles",
-        value: "Pasacalles"
+        label: "SSanta",
+        value: "Semana Santa"
+    },
+    {
+        label: "Glorias",
+        value: "Glorias",
+    },
+    {
+        label: "Extraordinaria",
+        value: "Procesión extraordinaria"
     }
 ]
 
@@ -52,10 +63,6 @@ export const organizadores = [
     {
         key: "Consejo de Hermandades de Sevilla",
         value: "Consejo General de Hermandades y Cofradías de Sevilla"
-    },
-    {
-        key: "Encarnación y Rosario",
-        value: "Agrupación Parroquial del Rosario de Nuestra Señora del Rosario de Nuestra Señora de Fátima y María Santísima de la Encarnación"
     },
     {
         key: "Servitas Carmona",
