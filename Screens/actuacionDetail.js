@@ -303,7 +303,7 @@ const [suggestions, setSuggestions] = useState([])
 
   return (
     <>
-      {repertorios.length || actuacion.concepto ? (
+      { actuacion.concepto ? (
         <ScrollView keyboardShouldPersistTaps="always" style={styles.container}>
           {searchVisible ? (
             <View style={styles.modalView}>
@@ -321,6 +321,7 @@ const [suggestions, setSuggestions] = useState([])
                     return (
                       <Pressable
                         style={styles.pressable}
+                        key={marcha.idFirebase}
                         onPress={() => {
                           setNuevaInterpretacion(marcha.idFirebase)
                           setDatosComposicion(marcha.idFirebase)
