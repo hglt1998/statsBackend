@@ -404,7 +404,7 @@ const [suggestions, setSuggestions] = useState([])
                     onChangeText={(value) => {
                       setLocation(value);
                     }}
-                    value={location}
+                    value={location} style={{width: 115}}
                   />
                   <IconButton
                     icon="backspace"
@@ -517,7 +517,7 @@ const [suggestions, setSuggestions] = useState([])
                       {actuacion.tipo === "Procesión" ? (
                         <Text
                           onPress={() =>
-                            handleSetLocation(setLocation(repertorio.ubicacion))
+                            setLocation(repertorio.ubicacion)
                           }
                           style={{ flexBasis: 200, flexGrow: 1, flexShrink: 1 }}
                         >
@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
     width: 40,
     padding: 0,
     margin: 0,
-    height: 50,
+    height: 40,
     alignSelf: "center",
     backgroundColor: BUTTON.background,
     borderRadius: 5,
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     padding: 5,
   },
-  iconButtonDelete: { margin: 0, padding: 0, height: 25 },
+  iconButtonDelete: { margin: 0, padding: 0, height: 25, position: 'absolute', right: 0 },
   iconButtonActions: { flexDirection: "row" },
   modalInput: {
     textAlign: "left",
