@@ -1,28 +1,11 @@
-import {
-  getDatabase,
-  increment,
-  onValue,
-  ref,
-  set,
-  update,
-} from "firebase/database";
+import { getDatabase, increment, onValue, ref, set, update } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, IconButton } from "react-native-paper";
-import {
-  Button,
-  ScrollView,
-  Text,
-  View,
-  StyleSheet,
-  TextInput,
-  Alert,
-  Dimensions,
-  Pressable,
-} from "react-native";
+import { Button, ScrollView, Text, View, StyleSheet, TextInput, Alert, Dimensions, Pressable } from "react-native";
 import firebase from "../database/firebase";
 import DateTimePickerModal from "@react-native-community/datetimepicker";
 import { Badge } from "react-native-elements";
-import BUTTON from "./variables"
+import BUTTON from "./variables";
 
 const actuacionDetail = (props) => {
   // ----------------------------- STATES -----------------------------
@@ -58,17 +41,17 @@ const actuacionDetail = (props) => {
 
   const [connection, setConnection] = useState(false);
 
-  const [searchVisible, setsearchVisible] = useState(false)
+  const [searchVisible, setsearchVisible] = useState(false);
 
   const [listado, setlistado] = useState([]);
 
   const [suggestions, setSuggestions] = useState([]);
 
-  const [showTwitInput, setshowTwitInput] = useState(false)
+  const [showTwitInput, setshowTwitInput] = useState(false);
 
-  const [twitInput, setTwitInput] = useState('')
+  const [twitInput, setTwitInput] = useState("");
 
-  const [twitTime, setTwitTime] = useState(new Date())
+  const [twitTime, setTwitTime] = useState(new Date());
 
   // ----------------------------- USEEFFECT -----------------------------
   useEffect(() => {
@@ -125,8 +108,8 @@ const actuacionDetail = (props) => {
       },
       {
         text: "Cancelar",
-        onPress: () => console.log('Cancel pressed')
-      }
+        onPress: () => console.log("Cancel pressed"),
+      },
     ]);
   };
 
@@ -197,19 +180,19 @@ const actuacionDetail = (props) => {
       [
         {
           text: "No",
-          onPress: () => console.log("No selected")
+          onPress: () => console.log("No selected"),
         },
         {
           text: "Sí",
           onPress: () => {
             const db = getDatabase();
-            set(ref(db, "repertorios/" + idActuacion + "/" + id), null)
-          }
-        }
+            set(ref(db, "repertorios/" + idActuacion + "/" + id), null);
+          },
+        },
       ],
-      {cancelable: true}
-    )
-  }
+      { cancelable: true }
+    );
+  };
 
   const generateID = () => {
     let newDate = new Date();
@@ -227,7 +210,7 @@ const actuacionDetail = (props) => {
 
   const generateTwitID = () => {
     let newDate = new Date();
-    newDate = twitTime
+    newDate = twitTime;
     const date = newDate
       .toLocaleDateString("en-US", {
         year: "numeric",
@@ -237,16 +220,14 @@ const actuacionDetail = (props) => {
       .replace(/[^0-9]/g, "");
     const time = newDate.getTime().toString();
     return date + time;
-  }
+  };
 
   const addInterpretacion = async () => {
     const db = getDatabase();
     const id = generateID();
     setDatosComposicion(interpretacion);
 
-    const time = isDatePickerVisible
-      ? customDate.toLocaleString()
-      : new Date().toLocaleString();
+    const time = isDatePickerVisible ? customDate.toLocaleString() : new Date().toLocaleString();
     try {
       set(ref(db, "repertorios/" + idActuacion + "/" + id), {
         nMarcha: interpretacion,
@@ -257,7 +238,7 @@ const actuacionDetail = (props) => {
         compositor: composicion.compositor,
         idCompositor: composicion.idCompositor,
         enlazada: 1,
-      }).finally(error => {
+      }).finally((error) => {
         console.log(time);
       });
       setNuevaInterpretacion("");
@@ -274,20 +255,20 @@ const actuacionDetail = (props) => {
     const id = generateTwitID();
 
     console.log(twitTime);
-    
+
     try {
       set(ref(db, "repertorios/" + idActuacion + "/" + id), {
         url: twitInput,
         time: twitTime.toLocaleString(),
-        idInterpretacion: id
-      })
-      setTwitInput('')
+        idInterpretacion: id,
+      });
+      setTwitInput("");
       setshowTwitInput(false);
-      setTwitTime(new Date())
+      setTwitTime(new Date());
     } catch (error) {
       console.log(error);
     }
-  }
+  };
 
   const showDatePicker = () => {
     setIsDatePickerVisible(!isDatePickerVisible);
@@ -320,28 +301,29 @@ const actuacionDetail = (props) => {
       if (data) {
         setRepertorios(Object.values(data).reverse());
       }
-    })
+    });
   };
 
   const loadComposiciones = async () => {
-    await firebase.db.collection("composiciones").get().then((querySnapshot) => {
-      const listado = []
+    await firebase.db
+      .collection("composiciones")
+      .get()
+      .then((querySnapshot) => {
+        const listado = [];
 
-      querySnapshot.forEach((doc) => {
-        const info = doc.data();
+        querySnapshot.forEach((doc) => {
+          const info = doc.data();
 
-        listado.push({
-          compositor: info.compositor,
-          titulo: info.titulo,
-          idFirebase: doc.id,
-          idComposicion: info.idComposicion
-        })
-      })
-      setlistado(listado)
-    })
-
-
-  }
+          listado.push({
+            compositor: info.compositor,
+            titulo: info.titulo,
+            idFirebase: doc.id,
+            idComposicion: info.idComposicion,
+          });
+        });
+        setlistado(listado);
+      });
+  };
 
   const setDatosComposicion = (nMarcha) => {
     const doc = firebase.db.collection("composiciones").doc(nMarcha);
@@ -351,14 +333,13 @@ const actuacionDetail = (props) => {
     });
   };
 
-
   const handleModalInput = (value) => {
     if (value.length > 3) {
-      setSuggestions(listado.filter((marcha) => marcha.titulo.toLowerCase().includes(value)))
+      setSuggestions(listado.filter((marcha) => marcha.titulo.toLowerCase().includes(value)));
     } else {
-      setSuggestions([])
+      setSuggestions([]);
     }
-  }
+  };
 
   // ----------------------------- VIEW -----------------------------
 
@@ -389,7 +370,9 @@ const actuacionDetail = (props) => {
                           setsearchVisible(false);
                         }}
                       >
-                        <Text key={marcha.idFirebase} numberOfLines={1}>{marcha.titulo}</Text>
+                        <Text key={marcha.idFirebase} numberOfLines={1}>
+                          {marcha.titulo}
+                        </Text>
                         <Text key={marcha.idFirebase}>{marcha.compositor}</Text>
                         <Text key={marcha.idFirebase}>{marcha.idComposicion}</Text>
                       </Pressable>
@@ -399,40 +382,18 @@ const actuacionDetail = (props) => {
               ) : (
                 <></>
               )}
-              <TextInput
-                onChangeText={(value) => handleModalInput(value)}
-                style={styles.modalInput}
-                autoFocus={true}
-                placeholder="nombre"
-                autoCapitalize="none"
-                autoCorrect={false}
-              ></TextInput>
+              <TextInput onChangeText={(value) => handleModalInput(value)} style={styles.modalInput} autoFocus={true} placeholder="nombre" autoCapitalize="none" autoCorrect={false}></TextInput>
             </View>
           ) : (
             <></>
           )}
           {showTwitInput ? (
             <View style={styles.modalView}>
-              <IconButton
-                icon="close"
-                style={{ backgroundColor: "white" }}
-                onPress={() => setshowTwitInput(false)}
-              />
+              <IconButton icon="close" style={{ backgroundColor: "white" }} onPress={() => setshowTwitInput(false)} />
               <View style={{ display: "flex", flexDirection: "row" }}>
-                <TextInput
-                  onChangeText={(value) => setTwitInput(value)}
-                  style={styles.modalInput}
-                  autoFocus={true}
-                  placeholder="Url"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                ></TextInput>
-                <View style={[styles.button, { width: '30%', height: 50}]}>
-                  <Button
-                    color="#FFFFFF"
-                    title="Aceptar"
-                    onPress={() => addTwit()}
-                  />
+                <TextInput onChangeText={(value) => setTwitInput(value)} style={styles.modalInput} autoFocus={true} placeholder="Url" autoCapitalize="none" autoCorrect={false}></TextInput>
+                <View style={[styles.button, { width: "30%", height: 50 }]}>
+                  <Button color="#FFFFFF" title="Aceptar" onPress={() => addTwit()} />
                 </View>
               </View>
               <DateTimePickerModal
@@ -451,28 +412,11 @@ const actuacionDetail = (props) => {
             <></>
           )}
 
-          <View
-            style={[
-              styles.card,
-              actuacion.isLive
-                ? { borderColor: "#d0342c", borderWidth: 2 }
-                : { backgroundColor: "white" },
-            ]}
-            onTouchEnd={() => handleToggleSwitch(!actuacion.isLive)}
-          >
+          <View style={[styles.card, actuacion.isLive ? { borderColor: "#d0342c", borderWidth: 2 } : { backgroundColor: "white" }]} onTouchEnd={() => handleToggleSwitch(!actuacion.isLive)}>
             <View style={styles.textGroup}>
               <Text>{actuacion.concepto}</Text>
-              <Text>
-                {new Date(actuacion.fecha.seconds * 1000)
-                  .toLocaleString()
-                  .toString()
-                  .slice(0, -3)}
-              </Text>
-              {connection ? (
-                <Badge status="success"></Badge>
-              ) : (
-                <Badge status="error"></Badge>
-              )}
+              <Text>{new Date(actuacion.fecha.seconds * 1000).toLocaleString().toString().slice(0, -3)}</Text>
+              {connection ? <Badge status="success"></Badge> : <Badge status="error"></Badge>}
             </View>
             <Text>{actuacion.organizador1}</Text>
           </View>
@@ -489,11 +433,7 @@ const actuacionDetail = (props) => {
                   }}
                   value={interpretacion}
                 />
-                <IconButton
-                  icon="magnify"
-                  onPress={() => setsearchVisible(true)}
-                  style={styles.iconButtonDelete}
-                />
+                <IconButton icon="magnify" onPress={() => setsearchVisible(true)} style={styles.iconButtonDelete} />
               </View>
               {actuacion.tipo === "Procesión" ? (
                 <View style={styles.textInputs}>
@@ -507,28 +447,15 @@ const actuacionDetail = (props) => {
                     value={location}
                     style={{ width: 115 }}
                   />
-                  <IconButton
-                    icon="backspace"
-                    onPress={() => setLocation("")}
-                    style={styles.iconButtonDelete}
-                  />
+                  <IconButton icon="backspace" onPress={() => setLocation("")} style={styles.iconButtonDelete} />
                 </View>
               ) : (
                 <></>
               )}
-              <IconButton
-                icon="clock-time-four-outline"
-                iconColor="white"
-                onPress={() => showDatePicker()}
-                style={styles.buttonDate}
-              />
+              <IconButton icon="clock-time-four-outline" iconColor="white" onPress={() => showDatePicker()} style={styles.buttonDate} />
             </View>
             <View style={styles.button}>
-              <Button
-                color="#FFFFFF"
-                title="Añadir twit"
-                onPress={() => setshowTwitInput(true)}
-              />
+              <Button color="#FFFFFF" title="Añadir twit" onPress={() => setshowTwitInput(true)} />
             </View>
             <View style={styles.button}>
               <Button
@@ -558,67 +485,23 @@ const actuacionDetail = (props) => {
           ) : (
             <>
               <View style={styles.inputs}>
-                <Text style={{ justifyContent: "center" }}>
-                  Total: {repertorios.length}
-                </Text>
+                <Text style={{ justifyContent: "center" }}>Total: {repertorios.filter((item) => !item.url).length}</Text>
               </View>
-              <View style={styles.table}>
+              <View key={1} style={styles.table}>
                 <View style={styles.tableHead}>
-                  <Text
-                    style={[styles.whitetext, { flexBasis: 50, flexShrink: 1 }]}
-                  >
-                    Nº
-                  </Text>
-                  <Text
-                    style={[
-                      styles.whitetext,
-                      { flexBasis: 200, flexGrow: 1, flexShrink: 1 },
-                    ]}
-                  >
-                    Composición
-                  </Text>
-                  {actuacion.tipo === "Procesión" ? (
-                    <Text
-                      style={[
-                        styles.whitetext,
-                        { flexBasis: 200, flexGrow: 1, flexShrink: 1 },
-                      ]}
-                    >
-                      Ubicación
-                    </Text>
-                  ) : (
-                    <></>
-                  )}
-                  <Text
-                    style={[styles.whitetext, { flexBasis: 75, flexShrink: 1 }]}
-                  >
-                    Hora
-                  </Text>
-                  <Text
-                    style={[
-                      styles.whitetext,
-                      { flexBasis: 80, flexShrink: 1, flex: 1 },
-                    ]}
-                  >
-                    Actions
-                  </Text>
+                  <Text style={[styles.whitetext, { flexBasis: 50, flexShrink: 1 }]}>Nº</Text>
+                  <Text style={[styles.whitetext, { flexBasis: 200, flexGrow: 1, flexShrink: 1 }]}>Composición</Text>
+                  {actuacion.tipo === "Procesión" ? <Text style={[styles.whitetext, { flexBasis: 200, flexGrow: 1, flexShrink: 1 }]}>Ubicación</Text> : <></>}
+                  <Text style={[styles.whitetext, { flexBasis: 75, flexShrink: 1 }]}>Hora</Text>
+                  <Text style={[styles.whitetext, { flexBasis: 80, flexShrink: 1, flex: 1 }]}>Actions</Text>
                 </View>
                 {repertorios.map((repertorio, index) => {
                   const time = String(repertorio.time).slice(0, -3);
                   return (
                     <>
                       {!repertorio.url ? (
-                        <View
-                          style={
-                            repertorio.enlazada % 2 == 0
-                              ? styles.tableRowEnlazada
-                              : styles.tableRow
-                          }
-                          key={index}
-                        >
-                          <Text style={{ flexBasis: 50, flexShrink: 1 }}>
-                            {repertorio.nMarcha}
-                          </Text>
+                        <View style={repertorio.enlazada % 2 == 0 ? styles.tableRowEnlazada : styles.tableRow} key={index}>
+                          <Text style={{ flexBasis: 50, flexShrink: 1 }}>{repertorio.nMarcha}</Text>
                           <Text
                             style={{
                               flexBasis: 200,
@@ -642,29 +525,25 @@ const actuacionDetail = (props) => {
                           ) : (
                             <></>
                           )}
-                          <Text style={{ flexBasis: 75, flexShrink: 1 }}>
-                            {time.substring(time.indexOf(",") + 2, time.length)}
-                          </Text>
-                          <View
-                            style={[
-                              styles.iconButtonActions,
-                              { flexBasis: 75, flexShrink: 1 },
-                            ]}
-                          >
-                            <IconButton
-                              icon="pencil"
-                              onPress={() =>
-                                handleEdit(repertorio.idInterpretacion)
-                              }
-                              color="#0e606b"
-                              style={styles.iconButtonActions}
-                            />
+                          <Text style={{ flexBasis: 75, flexShrink: 1 }}>{time.substring(time.indexOf(",") + 2, time.length)}</Text>
+                          <View style={[styles.iconButtonActions, { flexBasis: 75, flexShrink: 1 }]}>
+                            <IconButton icon="pencil" onPress={() => handleEdit(repertorio.idInterpretacion)} color="#0e606b" style={styles.iconButtonActions} />
                           </View>
                         </View>
                       ) : (
-                        <View style={[styles.tableRow, {width: "100%", display: "flex", justifyContent: 'space-between'}]} key={repertorio.url}>
+                        <View
+                          style={[
+                            styles.tableRow,
+                            {
+                              width: "100%",
+                              display: "flex",
+                              justifyContent: "space-between",
+                            },
+                          ]}
+                          key={repertorio.url}
+                        >
                           <Text>{repertorio.url.slice(27)}</Text>
-                          <IconButton style={{right: 0}} icon="delete-off" onPress={() => handleDeleteTwit(repertorio.idInterpretacion)} />
+                          <IconButton style={{ right: 0 }} icon="delete-off" onPress={() => handleDeleteTwit(repertorio.idInterpretacion)} />
                         </View>
                       )}
                     </>
@@ -676,12 +555,7 @@ const actuacionDetail = (props) => {
           <Button title={"Home"} onPress={handleHome} />
         </ScrollView>
       ) : (
-        <ActivityIndicator
-          animating={true}
-          color={BUTTON.background}
-          size={100}
-          style={{ padding: 0, margin: "50%" }}
-        ></ActivityIndicator>
+        <ActivityIndicator animating={true} color={BUTTON.background} size={100} style={{ padding: 0, margin: "50%" }}></ActivityIndicator>
       )}
     </>
   );
@@ -693,7 +567,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginHorizontal: 10,
     padding: 5,
-    marginVertical: 2
+    marginVertical: 2,
   },
   buttonDate: {
     width: 40,
@@ -737,7 +611,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     padding: 5,
   },
-  iconButtonDelete: { margin: 0, padding: 0, height: 25, position: 'absolute', right: 0 },
+  iconButtonDelete: {
+    margin: 0,
+    padding: 0,
+    height: 25,
+    position: "absolute",
+    right: 0,
+  },
   iconButtonActions: { flexDirection: "row" },
   modalInput: {
     textAlign: "left",
@@ -755,14 +635,14 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     zIndex: 10000,
     paddingHorizontal: 10,
-    paddingTop: 10
+    paddingTop: 10,
   },
   pressable: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     width: 150,
     borderRadius: 5,
     padding: 5,
-  },  
+  },
   textInputs: {
     flexDirection: "row",
     alignContent: "center",
@@ -791,11 +671,11 @@ const styles = StyleSheet.create({
   },
   suggestionsGrid: {
     flex: 3,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     rowGap: 5,
     columnGap: 5,
-    overflow: 'scroll',
+    overflow: "scroll",
   },
   tableRow: {
     flexDirection: "row",
