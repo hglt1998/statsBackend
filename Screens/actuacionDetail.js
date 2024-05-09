@@ -60,9 +60,15 @@ const actuacionDetail = (props) => {
 
   const [searchVisible, setsearchVisible] = useState(false)
 
-  const [listado, setlistado] = useState([])
+  const [listado, setlistado] = useState([]);
 
-const [suggestions, setSuggestions] = useState([])
+  const [suggestions, setSuggestions] = useState([]);
+
+  const [showTwitInput, setshowTwitInput] = useState(false)
+
+  const [twitInput, setTwitInput] = useState('')
+
+  const [twitTime, setTwitTime] = useState(new Date())
 
   // ----------------------------- USEEFFECT -----------------------------
   useEffect(() => {
@@ -184,6 +190,27 @@ const [suggestions, setSuggestions] = useState([])
     );
   };
 
+  const handleDeleteTwit = (id) => {
+    Alert.alert(
+      "Eliminar",
+      "¿Estás seguro que deseas eliminar este twit?",
+      [
+        {
+          text: "No",
+          onPress: () => console.log("No selected")
+        },
+        {
+          text: "Sí",
+          onPress: () => {
+            const db = getDatabase();
+            set(ref(db, "repertorios/" + idActuacion + "/" + id), null)
+          }
+        }
+      ],
+      {cancelable: true}
+    )
+  }
+
   const generateID = () => {
     let newDate = new Date();
     isDatePickerVisible ? (newDate = customDate) : (newDate = new Date());
@@ -197,6 +224,20 @@ const [suggestions, setSuggestions] = useState([])
     const time = newDate.getTime().toString();
     return date + time;
   };
+
+  const generateTwitID = () => {
+    let newDate = new Date();
+    newDate = twitTime
+    const date = newDate
+      .toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+      .replace(/[^0-9]/g, "");
+    const time = newDate.getTime().toString();
+    return date + time;
+  }
 
   const addInterpretacion = async () => {
     const db = getDatabase();
@@ -227,6 +268,26 @@ const [suggestions, setSuggestions] = useState([])
       console.log(error);
     }
   };
+
+  const addTwit = async () => {
+    const db = getDatabase();
+    const id = generateTwitID();
+
+    console.log(twitTime);
+    
+    try {
+      set(ref(db, "repertorios/" + idActuacion + "/" + id), {
+        url: twitInput,
+        time: twitTime.toLocaleString(),
+        idInterpretacion: id
+      })
+      setTwitInput('')
+      setshowTwitInput(false);
+      setTwitTime(new Date())
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   const showDatePicker = () => {
     setIsDatePickerVisible(!isDatePickerVisible);
@@ -303,7 +364,7 @@ const [suggestions, setSuggestions] = useState([])
 
   return (
     <>
-      { actuacion.concepto ? (
+      {actuacion.concepto ? (
         <ScrollView keyboardShouldPersistTaps="always" style={styles.container}>
           {searchVisible ? (
             <View style={styles.modalView}>
@@ -311,8 +372,8 @@ const [suggestions, setSuggestions] = useState([])
                 icon="close"
                 style={{ backgroundColor: "white" }}
                 onPress={() => {
-                  setsearchVisible(false)
-                  setSuggestions([])
+                  setsearchVisible(false);
+                  setSuggestions([]);
                 }}
               />
               {suggestions.length >= 1 ? (
@@ -323,14 +384,14 @@ const [suggestions, setSuggestions] = useState([])
                         style={styles.pressable}
                         key={marcha.idFirebase}
                         onPress={() => {
-                          setNuevaInterpretacion(marcha.idFirebase)
-                          setDatosComposicion(marcha.idFirebase)
-                          setsearchVisible(false)
+                          setNuevaInterpretacion(marcha.idFirebase);
+                          setDatosComposicion(marcha.idFirebase);
+                          setsearchVisible(false);
                         }}
                       >
-                        <Text numberOfLines={1}>{marcha.titulo}</Text>
-                        <Text>{marcha.compositor}</Text>
-                        <Text>{marcha.idComposicion}</Text>
+                        <Text key={marcha.idFirebase} numberOfLines={1}>{marcha.titulo}</Text>
+                        <Text key={marcha.idFirebase}>{marcha.compositor}</Text>
+                        <Text key={marcha.idFirebase}>{marcha.idComposicion}</Text>
                       </Pressable>
                     );
                   })}
@@ -346,6 +407,45 @@ const [suggestions, setSuggestions] = useState([])
                 autoCapitalize="none"
                 autoCorrect={false}
               ></TextInput>
+            </View>
+          ) : (
+            <></>
+          )}
+          {showTwitInput ? (
+            <View style={styles.modalView}>
+              <IconButton
+                icon="close"
+                style={{ backgroundColor: "white" }}
+                onPress={() => setshowTwitInput(false)}
+              />
+              <View style={{ display: "flex", flexDirection: "row" }}>
+                <TextInput
+                  onChangeText={(value) => setTwitInput(value)}
+                  style={styles.modalInput}
+                  autoFocus={true}
+                  placeholder="Url"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                ></TextInput>
+                <View style={[styles.button, { width: '30%', height: 50}]}>
+                  <Button
+                    color="#FFFFFF"
+                    title="Aceptar"
+                    onPress={() => addTwit()}
+                  />
+                </View>
+              </View>
+              <DateTimePickerModal
+                display="inline"
+                style={styles.datePicker}
+                textColor="#d03e3e"
+                isDatePickerVisible={true}
+                mode="datetime"
+                value={twitTime}
+                onChange={(value) => {
+                  setTwitTime(new Date(value.nativeEvent.timestamp));
+                }}
+              />
             </View>
           ) : (
             <></>
@@ -404,7 +504,8 @@ const [suggestions, setSuggestions] = useState([])
                     onChangeText={(value) => {
                       setLocation(value);
                     }}
-                    value={location} style={{width: 115}}
+                    value={location}
+                    style={{ width: 115 }}
                   />
                   <IconButton
                     icon="backspace"
@@ -420,6 +521,13 @@ const [suggestions, setSuggestions] = useState([])
                 iconColor="white"
                 onPress={() => showDatePicker()}
                 style={styles.buttonDate}
+              />
+            </View>
+            <View style={styles.button}>
+              <Button
+                color="#FFFFFF"
+                title="Añadir twit"
+                onPress={() => setshowTwitInput(true)}
               />
             </View>
             <View style={styles.button}>
@@ -495,56 +603,71 @@ const [suggestions, setSuggestions] = useState([])
                     Actions
                   </Text>
                 </View>
-                {repertorios.map((repertorio) => {
+                {repertorios.map((repertorio, index) => {
                   const time = String(repertorio.time).slice(0, -3);
                   return (
-                    <View
-                      style={
-                        repertorio.enlazada % 2 == 0
-                          ? styles.tableRowEnlazada
-                          : styles.tableRow
-                      }
-                      key={repertorio.time}
-                    >
-                      <Text style={{ flexBasis: 50, flexShrink: 1 }}>
-                        {repertorio.nMarcha}
-                      </Text>
-                      <Text
-                        style={{ flexBasis: 200, flexGrow: 1, flexShrink: 1 }}
-                      >
-                        {repertorio.tituloMarcha}
-                      </Text>
-                      {actuacion.tipo === "Procesión" ? (
-                        <Text
-                          onPress={() =>
-                            setLocation(repertorio.ubicacion)
+                    <>
+                      {!repertorio.url ? (
+                        <View
+                          style={
+                            repertorio.enlazada % 2 == 0
+                              ? styles.tableRowEnlazada
+                              : styles.tableRow
                           }
-                          style={{ flexBasis: 200, flexGrow: 1, flexShrink: 1 }}
+                          key={index}
                         >
-                          {repertorio.ubicacion}
-                        </Text>
+                          <Text style={{ flexBasis: 50, flexShrink: 1 }}>
+                            {repertorio.nMarcha}
+                          </Text>
+                          <Text
+                            style={{
+                              flexBasis: 200,
+                              flexGrow: 1,
+                              flexShrink: 1,
+                            }}
+                          >
+                            {repertorio.tituloMarcha}
+                          </Text>
+                          {actuacion.tipo === "Procesión" ? (
+                            <Text
+                              onPress={() => setLocation(repertorio.ubicacion)}
+                              style={{
+                                flexBasis: 200,
+                                flexGrow: 1,
+                                flexShrink: 1,
+                              }}
+                            >
+                              {repertorio.ubicacion}
+                            </Text>
+                          ) : (
+                            <></>
+                          )}
+                          <Text style={{ flexBasis: 75, flexShrink: 1 }}>
+                            {time.substring(time.indexOf(",") + 2, time.length)}
+                          </Text>
+                          <View
+                            style={[
+                              styles.iconButtonActions,
+                              { flexBasis: 75, flexShrink: 1 },
+                            ]}
+                          >
+                            <IconButton
+                              icon="pencil"
+                              onPress={() =>
+                                handleEdit(repertorio.idInterpretacion)
+                              }
+                              color="#0e606b"
+                              style={styles.iconButtonActions}
+                            />
+                          </View>
+                        </View>
                       ) : (
-                        <></>
+                        <View style={[styles.tableRow, {width: "100%", display: "flex", justifyContent: 'space-between'}]} key={repertorio.url}>
+                          <Text>{repertorio.url.slice(27)}</Text>
+                          <IconButton style={{right: 0}} icon="delete-off" onPress={() => handleDeleteTwit(repertorio.idInterpretacion)} />
+                        </View>
                       )}
-                      <Text style={{ flexBasis: 75, flexShrink: 1 }}>
-                        {time.substring(time.indexOf(",") + 2, time.length)}
-                      </Text>
-                      <View
-                        style={[
-                          styles.iconButtonActions,
-                          { flexBasis: 75, flexShrink: 1 },
-                        ]}
-                      >
-                        <IconButton
-                          icon="pencil"
-                          onPress={() =>
-                            handleEdit(repertorio.idInterpretacion)
-                          }
-                          color="#0e606b"
-                          style={styles.iconButtonActions}
-                        />
-                      </View>
-                    </View>
+                    </>
                   );
                 })}
               </View>
@@ -570,6 +693,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginHorizontal: 10,
     padding: 5,
+    marginVertical: 2
   },
   buttonDate: {
     width: 40,
@@ -618,13 +742,10 @@ const styles = StyleSheet.create({
   modalInput: {
     textAlign: "left",
     borderRadius: 5,
-    paddingLeft: 10,
     backgroundColor: "white",
-    width: 150,
+    width: "65%",
+    paddingLeft: 5,
     height: 50,
-    alignSelf: "center",
-    position: 'absolute',
-    top: 350,
   },
   modalView: {
     position: "absolute",

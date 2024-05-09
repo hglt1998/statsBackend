@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Button,
@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import firebase from "../database/firebase";
+import DateTimePickerModal from "@react-native-community/datetimepicker";
 import { ActivityIndicator, SegmentedButtons } from 'react-native-paper'
 import { tagsActuacion, tiposActuaciones } from "../database/constants";
 import { getDatabase, set, ref, onValue } from "firebase/database";
@@ -18,23 +19,14 @@ import { Badge } from "react-native-elements";
 
 const createActuacion = (props) => {
   const database = getDatabase();
-  const [date, setDate] = useState(new Date());
   const [isLive, setIsLive] = useState(false);
   const [organizadores, setOrganizadores] = useState([]);
   const [connection, setConnection] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [visible, setVisible] = useState(false)
-
-  const ref1 = useRef();
-  const ref2 = useRef();
-  const ref3 = useRef();
-  const ref4 = useRef();
-  const ref5 = useRef();
-  const ref6 = useRef();
 
   const [state, setState] = useState({
     concepto: "",
-    fecha: date,
+    fecha: new Date(),
     idActuacion: "",
     idRepertorio: "",
     isLive: false,
@@ -110,7 +102,7 @@ const createActuacion = (props) => {
             idRepertorio: id,
             idActuacion: id,
             concepto: state.concepto,
-            fecha: date,
+            fecha: state.fecha,
             isLive: state.isLive,
             organizador1: state.organizador1,
             organizador2: state.organizador2,
@@ -129,7 +121,6 @@ const createActuacion = (props) => {
         await props.navigation.navigate("actuacionDetail", { eventoId: id });
       } catch (error) {
         setLoading(false);
-        console.log(state.fecha, error);
         return (
           <View>
             <Text>ERROR</Text>
@@ -204,21 +195,18 @@ const createActuacion = (props) => {
                   placeholderTextColor="#46596B"
                   placeholder="Concierto de..."
                   onChangeText={(value) => handleChangeText("concepto", value)}
-                  ref={ref1}
-                  onSubmitEditing={() => ref2.current.focus()}
                   returnKeyType="next"
                 />
               </View>
               <View style={styles.inputGroup}>
                 <Text style={styles.textLabel}>Fecha</Text>
-                <TextInput
-                  style={styles.placeholder}
-                  placeholderTextColor="#46596B"
-                  placeholder="MM/DD/YYYY HH:MM"
-                  onChangeText={(value) => handleChangeText("fecha", value)}
-                  ref={ref2}
-                  onSubmitEditing={() => ref3.current.focus()}
-                  returnKeyType="next"
+                <DateTimePickerModal 
+                  style={styles.datePicker}
+                  display="inline"
+                  mode="datetime"
+                  value={state.fecha}
+                  textColor="#d03e3e"
+                  onChange={(value) => handleChangeText('fecha', new Date(value.nativeEvent.timestamp))}
                 />
               </View>
               <View style={styles.inputGroup}>
@@ -228,8 +216,6 @@ const createActuacion = (props) => {
                   placeholderTextColor="#46596B"
                   placeholder="Lugar del evento"
                   onChangeText={(value) => handleChangeText("ubicacion", value)}
-                  ref={ref3}
-                  onSubmitEditing={() => ref4.current.focus()}
                   returnKeyType="next"
                 />
               </View>
@@ -240,8 +226,6 @@ const createActuacion = (props) => {
                   placeholderTextColor="#46596B"
                   placeholder="Ciudad del evento"
                   onChangeText={(value) => handleChangeText("ciudad", value)}
-                  ref={ref4}
-                  onSubmitEditing={() => ref5.current.focus()}
                   returnKeyType="next"
                 />
               </View>
@@ -255,8 +239,6 @@ const createActuacion = (props) => {
                   onChangeText={(value) =>
                     handleChangeText("organizador1", value)
                   }
-                  ref={ref5}
-                  onSubmitEditing={() => ref6.current.focus()}
                   returnKeyType="next"
                 />
               </View>
@@ -269,7 +251,6 @@ const createActuacion = (props) => {
                   onChangeText={(value) =>
                     handleChangeText("organizador2", value)
                   }
-                  ref={ref6}
                   returnKeyType="next"
                 />
               </View>
@@ -298,6 +279,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 35,
     padding: 20,
+  },
+  datePicker: {
+    backgroundColor: "#2E3033",
+    marginHorizontal: 10,
+    marginVertical: 10,
+    height: 380,
+    color: "#DDDDD",
   },
   inputGroup: {
     fontSize: 18,

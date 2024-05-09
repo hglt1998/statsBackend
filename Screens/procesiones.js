@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import firebase from "../database/firebase";
 import { Avatar, ListItem } from "react-native-elements";
+import { DataTable, IconButton } from 'react-native-paper'
 import BUTTON from "./variables"
 import { getDatabase, ref, set } from "firebase/database";
 
@@ -40,6 +41,7 @@ function events({ navigation }) {
             concepto: info.concepto,
             organizador1: info.organizador1,
             fecha: info.fecha,
+            isLive: info.isLive
           });
         });
         setEvents(events);
@@ -56,9 +58,7 @@ function events({ navigation }) {
       text: "Sí",
       onPress: () => {
         firebase.db.collection("actuaciones").doc(id).delete()
-        set(ref(db, 'repertorios/' + id), null).finally(success => {
-          
-        })
+        set(ref(db, 'repertorios/' + id), null).catch((error) => console.log(error))
         
       }
     },
@@ -106,36 +106,22 @@ function events({ navigation }) {
         </Pressable>
       </View>
 
-      {events.map((evento) => {
+      {events.map((evento, index) => {
         const formatedDate = new Date(evento.fecha.seconds * 1000)
           .toLocaleString()
-          .toString();
+          .toString().slice(0, -3);
         return (
-          <ListItem
-            style={styles.item}
-            key={evento.id}
-            onPress={() => {
-              navigation.navigate("actuacionDetail", {
-                eventoId: evento.id,
-              });
-            }}
-            onLongPress={() => handleDelete(evento.id)}
-          >
-            <ListItem.Chevron />
-            <Avatar
-              source={{
-                uri: "https://municipaldemairena.com/wp-content/uploads/2020/10/ColorSinFondo-e1602318863442.png",
-              }}
-              rounded
-            />
-            <ListItem.Content>
-              <ListItem.Title>{evento.concepto}</ListItem.Title>
-              <ListItem.Subtitle>{evento.organizador1}</ListItem.Subtitle>
-              <ListItem.Content>
-                <Text>{formatedDate}</Text>
-              </ListItem.Content>
-            </ListItem.Content>
-          </ListItem>
+          <View key={index} style={styles.card}>
+            <View style={styles.leftGroup}>
+              <Text style={[styles.concept, {color: evento.isLive ? 'red' : 'black'}]}>{evento.concepto}</Text>
+              <Text>{evento.organizador1}</Text>
+              <Text>{formatedDate}</Text>
+            </View>
+            <View style={styles.actions}>
+              <IconButton icon="delete-off" iconColor="#f44336" onPress={() => handleDelete(evento.id)}/>
+              <IconButton icon="file-edit" onPress={() => navigation.navigate("actuacionDetail", {eventoId: evento.id})}/>
+            </View>
+          </View>
         );
       })}
     </ScrollView>
@@ -151,21 +137,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: BUTTON.text
   },
-  item: {
-    padding: 5,
-    backgroundColor: "#FFFFFF",
-    padding: 5,
-    margin: 5,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
-    elevation: 6,
-  },
   button: {
     padding: 5,
     backgroundColor: BUTTON.background,
@@ -173,6 +144,28 @@ const styles = StyleSheet.create({
     margin: 5,
     borderRadius: 10,
   },
+  card: {
+    display: 'flex',
+    flexDirection: 'row',
+    margin: 5,
+    padding: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth
+  },
+  leftGroup: {
+    fontSize: '15',
+    width: '75%',
+    paddingLeft: 20
+  },
+  actions: {
+    display: 'flex',
+    flexDirection: 'row',
+    width: '25%',
+    paddingRight: 20
+  },  
+  concept: {
+    fontWeight: 'bold',
+    fontSize: '16'
+  }
 });
 
 export default events;

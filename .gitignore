@@ -75,6 +75,7 @@ web-build/
 dist/
 
 # @end expo-cli
+/android*
 /android
 /android/gradle.properties
 /android/app

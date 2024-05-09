@@ -37,7 +37,8 @@
       "runtimeVersion": {
         "policy": "appVersion"
       },
-      "jsEngine": "hermes"
+      "jsEngine": "hermes",
+      "package": "com.hglt1998.bmmstats"
     }
   }
 }
