@@ -11,6 +11,7 @@ import actuacionDetail from "./Screens/actuacionDetail"
 import createComposicion from './Screens/createComposicion';
 import createCompositor from './Screens/createCompositor';
 import manageOrganizadores from './Screens/manageOrganizadores';
+import { Provider } from 'react-native-paper';
 
 function MyStack() {
     return (
@@ -28,7 +29,9 @@ function MyStack() {
 export default function App() {
     return (
         <NavigationContainer>
-            <MyStack/>
+            <Provider>
+                <MyStack/>
+            </Provider>
         </NavigationContainer>
     );
 }

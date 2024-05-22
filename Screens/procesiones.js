@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StatusBar,
@@ -10,20 +10,21 @@ import {
   Alert,
 } from "react-native";
 import firebase from "../database/firebase";
-import { Avatar, ListItem } from "react-native-elements";
-import { DataTable, IconButton } from 'react-native-paper'
+import { FAB, IconButton, Portal } from 'react-native-paper'
 import BUTTON from "./variables"
 import { getDatabase, ref, set } from "firebase/database";
-
-const wait = (timeout) => {
-  return new Promise((resolve) => setTimeout(resolve, timeout));
-};
+import { useIsFocused } from "@react-navigation/native";
 
 const db = getDatabase()
 
 function events({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [events, setEvents] = useState([]);
+  const [state, setState] = useState({ open: false });
+  const { open } = state;
+  const isFocused = useIsFocused()
+
+  const onStateChange = ({ open }) => setState({ open });
 
   const loadData = () => {
     firebase.db
@@ -85,26 +86,30 @@ function events({ navigation }) {
         showHideTransition={"fade"}
         hidden={false}
       />
-      <View style={styles.button}>
-        <Pressable onPress={() => navigation.navigate("createActuacion")}>
-          <Text style={styles.textButton}>Crear actuación</Text>
-        </Pressable>
-      </View>
-      <View style={styles.button}>
-        <Pressable onPress={() => navigation.navigate("createComposicion")}>
-          <Text style={styles.textButton}>Crear composición</Text>
-        </Pressable>
-      </View>
-      <View style={styles.button}>
-        <Pressable onPress={() => navigation.navigate("createCompositor")}>
-          <Text style={styles.textButton}>Crear compositor</Text>
-        </Pressable>
-      </View>
-      <View style={styles.button}>
-        <Pressable onPress={() => navigation.navigate("manageOrganizadores")}>
-          <Text style={styles.textButton}>Organizadores</Text>
-        </Pressable>
-      </View>
+      {isFocused && (
+      <Portal>
+        <FAB.Group
+          open={open}
+          visible
+          icon={'plus'}
+          fabStyle={{backgroundColor: BUTTON.background}}
+          actions={[
+            {
+              icon: 'music-note', onPress: () => navigation.navigate("createComposicion"), label: 'Composición', color: 'white', color: BUTTON.background, style: {backgroundColor: 'white'}
+            },
+            {
+              icon: 'account', onPress: () => navigation.navigate("createCompositor"), label: 'Compositor', color: BUTTON.background, style: {backgroundColor: 'white'}
+            },
+            {
+              icon: 'file-document', onPress: () => navigation.navigate("createActuacion"), label: 'Actuación', color: 'white', color: BUTTON.background, style: {backgroundColor: 'white'}
+            },
+          ]}
+          onStateChange={onStateChange}
+         />
+      </Portal>)
+
+      }
+      
 
       {events.map((evento, index) => {
         const formatedDate = new Date(evento.fecha.seconds * 1000)
@@ -113,9 +118,9 @@ function events({ navigation }) {
         return (
           <View key={index} style={styles.card}>
             <View style={styles.leftGroup}>
-              <Text style={[styles.concept, {color: evento.isLive ? 'red' : 'black'}]}>{evento.concepto}</Text>
-              <Text>{evento.organizador1}</Text>
-              <Text>{formatedDate}</Text>
+              <Text style={[styles.concept, {color: evento.isLive ? 'red' : 'black'}]} onPress={() => navigation.navigate("actuacionDetail", {eventoId: evento.id})}>{evento.concepto}</Text>
+              <Text onPress={() => navigation.navigate("actuacionDetail", {eventoId: evento.id})}>{evento.organizador1}</Text>
+              <Text onPress={() => navigation.navigate("actuacionDetail", {eventoId: evento.id})}>{formatedDate}</Text>
             </View>
             <View style={styles.actions}>
               <IconButton icon="delete-off" iconColor="#f44336" onPress={() => handleDelete(evento.id)}/>

@@ -22,7 +22,8 @@
     "react-native": "0.74.1",
     "react-native-elements": "^3.4.2",
     "react-native-paper": "^5.11.3",
-    "webpack-dev-server": "~3.11.0"
+    "webpack-dev-server": "~3.11.0",
+    "expo-image-picker": "~15.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0"

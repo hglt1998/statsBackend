@@ -1,5 +1,5 @@
 import { getDatabase, increment, onValue, ref, set, update } from "firebase/database";
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { ActivityIndicator, IconButton } from "react-native-paper";
 import { Button, ScrollView, Text, View, StyleSheet, TextInput, Alert, Dimensions, Pressable } from "react-native";
 import firebase from "../database/firebase";
@@ -483,74 +483,78 @@ const actuacionDetail = (props) => {
           {repertorios.length == 0 ? (
             <Text>No Data</Text>
           ) : (
-            <>
-              <View style={styles.inputs}>
-                <Text style={{ justifyContent: "center" }}>Total: {repertorios.filter((item) => !item.url).length}</Text>
-              </View>
-              <View key={1} style={styles.table}>
-                <View style={styles.tableHead}>
-                  <Text style={[styles.whitetext, { flexBasis: 50, flexShrink: 1 }]}>Nº</Text>
-                  <Text style={[styles.whitetext, { flexBasis: 200, flexGrow: 1, flexShrink: 1 }]}>Composición</Text>
-                  {actuacion.tipo === "Procesión" ? <Text style={[styles.whitetext, { flexBasis: 200, flexGrow: 1, flexShrink: 1 }]}>Ubicación</Text> : <></>}
-                  <Text style={[styles.whitetext, { flexBasis: 75, flexShrink: 1 }]}>Hora</Text>
-                  <Text style={[styles.whitetext, { flexBasis: 80, flexShrink: 1, flex: 1 }]}>Actions</Text>
+              <Fragment>
+                <View style={styles.inputs}>
+                  <Text style={{ justifyContent: 'center' }}>
+                    Total: {repertorios.filter((item) => !item.url).length}
+                  </Text>
                 </View>
-                {repertorios.map((repertorio, index) => {
-                  const time = String(repertorio.time).slice(0, -3);
-                  return (
-                    <>
-                      {!repertorio.url ? (
-                        <View style={repertorio.enlazada % 2 == 0 ? styles.tableRowEnlazada : styles.tableRow} key={index}>
-                          <Text style={{ flexBasis: 50, flexShrink: 1 }}>{repertorio.nMarcha}</Text>
+                <View style={styles.table}>
+                  <View style={styles.tableHead}>
+                    <Text style={[styles.whitetext, { flexBasis: 50, flexShrink: 1 }]}>Nº</Text>
+                    <Text style={[styles.whitetext, { flexBasis: 200, flexGrow: 1, flexShrink: 1 }]}>Composición</Text>
+                    {actuacion.tipo === 'Procesión' ? (
+                      <Text style={[styles.whitetext, { flexBasis: 200, flexGrow: 1, flexShrink: 1 }]}>
+                        Ubicación
+                      </Text>
+                    ) : null}
+                    <Text style={[styles.whitetext, { flexBasis: 75, flexShrink: 1 }]}>Hora</Text>
+                    <Text style={[styles.whitetext, { flexBasis: 80, flexShrink: 1, flex: 1 }]}>
+                      Actions
+                    </Text>
+                  </View>
+                  {repertorios.map((repertorio, index) => {
+                    const time = String(repertorio.time).slice(0, -3);
+                    return !repertorio.url ? (
+                      <View
+                        key={repertorio.idInterpretacion || index}
+                        style={repertorio.enlazada % 2 == 0 ? styles.tableRowEnlazada : styles.tableRow}
+                      >
+                        <Text style={{ flexBasis: 50, flexShrink: 1 }}>{repertorio.nMarcha}</Text>
+                        <Text style={{ flexBasis: 200, flexGrow: 1, flexShrink: 1 }}>{repertorio.tituloMarcha}</Text>
+                        {actuacion.tipo === 'Procesión' ? (
                           <Text
-                            style={{
-                              flexBasis: 200,
-                              flexGrow: 1,
-                              flexShrink: 1,
-                            }}
+                            onPress={() => setLocation(repertorio.ubicacion)}
+                            style={{ flexBasis: 200, flexGrow: 1, flexShrink: 1 }}
                           >
-                            {repertorio.tituloMarcha}
+                            {repertorio.ubicacion}
                           </Text>
-                          {actuacion.tipo === "Procesión" ? (
-                            <Text
-                              onPress={() => setLocation(repertorio.ubicacion)}
-                              style={{
-                                flexBasis: 200,
-                                flexGrow: 1,
-                                flexShrink: 1,
-                              }}
-                            >
-                              {repertorio.ubicacion}
-                            </Text>
-                          ) : (
-                            <></>
-                          )}
-                          <Text style={{ flexBasis: 75, flexShrink: 1 }}>{time.substring(time.indexOf(",") + 2, time.length)}</Text>
-                          <View style={[styles.iconButtonActions, { flexBasis: 75, flexShrink: 1 }]}>
-                            <IconButton icon="pencil" onPress={() => handleEdit(repertorio.idInterpretacion)} color="#0e606b" style={styles.iconButtonActions} />
-                          </View>
+                        ) : null}
+                        <Text style={{ flexBasis: 75, flexShrink: 1 }}>
+                          {time.substring(time.indexOf(',') + 2)}
+                        </Text>
+                        <View style={[styles.iconButtonActions, { flexBasis: 75, flexShrink: 1 }]}>
+                          <IconButton
+                            icon="pencil"
+                            onPress={() => handleEdit(repertorio.idInterpretacion)}
+                            color="#0e606b"
+                            style={styles.iconButtonActions}
+                          />
                         </View>
-                      ) : (
-                        <View
-                          style={[
-                            styles.tableRow,
-                            {
-                              width: "100%",
-                              display: "flex",
-                              justifyContent: "space-between",
-                            },
-                          ]}
-                          key={repertorio.url}
-                        >
-                          <Text>{repertorio.url.slice(27)}</Text>
-                          <IconButton style={{ right: 0 }} icon="delete-off" onPress={() => handleDeleteTwit(repertorio.idInterpretacion)} />
-                        </View>
-                      )}
-                    </>
-                  );
-                })}
-              </View>
-            </>
+                      </View>
+                    ) : (
+                      <View
+                        key={repertorio.url || repertorio.idInterpretacion || index}
+                        style={[
+                          styles.tableRow,
+                          {
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                          },
+                        ]}
+                      >
+                        <Text>{repertorio.url.slice(27)}</Text>
+                        <IconButton
+                          style={{ right: 0 }}
+                          icon="delete-off"
+                          onPress={() => handleDeleteTwit(repertorio.idInterpretacion)}
+                        />
+                      </View>
+                    );
+                  })}
+                </View>
+              </Fragment>
           )}
           <Button title={"Home"} onPress={handleHome} />
         </ScrollView>
