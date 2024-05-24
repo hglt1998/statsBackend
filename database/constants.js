@@ -20,30 +20,36 @@ export const tiposMarcha = [
 export const tiposActuaciones = [
     {
         label: "Procesión",
-        value: "Procesión"
+        value: "Procesión",
+        uncheckedColor: 'black'
     },
     {
         label: "Concierto",
-        value: "Concierto"
+        value: "Concierto",
+        uncheckedColor: 'black'
     },
     {
         label: "Pregón",
-        value: "Pregón"
+        value: "Pregón",
+        uncheckedColor: 'black'
     },
 ]
 
 export const tagsActuacion = [
     {
         label: "SSanta",
-        value: "Semana Santa"
+        value: "Semana Santa",
+        uncheckedColor: 'black'
     },
     {
         label: "Glorias",
         value: "Glorias",
+        uncheckedColor: 'black'
     },
     {
         label: "Extraordinaria",
-        value: "Procesión extraordinaria"
+        value: "Procesión extraordinaria",
+        uncheckedColor: 'black'
     }
 ]
 

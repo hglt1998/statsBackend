@@ -16,9 +16,9 @@ import { Provider } from 'react-native-paper';
 function MyStack() {
     return (
         <Stack.Navigator>
-            <Stack.Screen name="procesiones" component={actuaciones} options={{title: 'Actuaciones'}}/>
-            <Stack.Screen name="actuacionDetail" component={actuacionDetail} options={{title: 'Actuación'}}/>
-            <Stack.Screen name="createActuacion" component={createActuacion} options={{title: 'Nueva Actuación'}}/>
+            <Stack.Screen name="procesiones" component={actuaciones} options={{title: 'BMM STATS'}}/>
+            <Stack.Screen name="actuacionDetail" component={actuacionDetail} options={{title: 'Actuación', headerBackTitle: 'back', detachPreviousScreen: true}}/>
+            <Stack.Screen name="createActuacion" component={createActuacion} options={{title: 'Nueva Actuación', headerBackTitle: 'back'}}/>
             <Stack.Screen name="createComposicion" component={createComposicion} options={{title: 'Crear composición'}}/>
             <Stack.Screen name="createCompositor" component={createCompositor} options={{title: 'Crear compositor'}}/>
             <Stack.Screen name="manageOrganizadores" component={manageOrganizadores} options={{title: 'Organizadores'}}/>

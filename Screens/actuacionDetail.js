@@ -1,11 +1,14 @@
-import { getDatabase, increment, onValue, ref, set, update } from "firebase/database";
+import { getDatabase, increment, onValue, ref, refFromURL, set, update } from "firebase/database";
 import React, { Fragment, useEffect, useState } from "react";
-import { ActivityIndicator, IconButton } from "react-native-paper";
-import { Button, ScrollView, Text, View, StyleSheet, TextInput, Alert, Dimensions, Pressable } from "react-native";
+import { ActivityIndicator, IconButton, ProgressBar } from "react-native-paper";
+import { Button, ScrollView, Text, View, StyleSheet, TextInput, Alert, Dimensions, Pressable, Image } from "react-native";
 import firebase from "../database/firebase";
 import DateTimePickerModal from "@react-native-community/datetimepicker";
 import { Badge } from "react-native-elements";
 import BUTTON from "./variables";
+import { deleteObject, getDownloadURL, ref as sref, uploadBytesResumable } from 'firebase/storage';
+import * as ImagePicker from 'expo-image-picker'
+import { doc, onSnapshot } from "firebase/firestore";
 
 const actuacionDetail = (props) => {
   // ----------------------------- STATES -----------------------------
@@ -21,6 +24,7 @@ const actuacionDetail = (props) => {
     ubicacion: "",
     ciudad: "",
     enlazada: 0,
+    coverImage: ''
   };
 
   const idActuacion = props.route.params.eventoId;
@@ -52,6 +56,10 @@ const actuacionDetail = (props) => {
   const [twitInput, setTwitInput] = useState("");
 
   const [twitTime, setTwitTime] = useState(new Date());
+
+  const [uploading, setUploading] = useState(false)
+
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   // ----------------------------- USEEFFECT -----------------------------
   useEffect(() => {
@@ -281,6 +289,15 @@ const actuacionDetail = (props) => {
   // ----------------------------- GETTERS -----------------------------
 
   const getActuacionByID = async (id) => {
+
+    firebase.db.collection("actuaciones").doc(id).onSnapshot((doc) => {
+      const actuacion = doc.data()
+      setActuacion({...actuacion, idActuacion: id, idRepertorio: id})
+    })
+
+
+
+
     const dbRef = firebase.db.collection("actuaciones").doc(id);
     const doc = await dbRef.get();
     const actuacion = doc.data();
@@ -340,6 +357,136 @@ const actuacionDetail = (props) => {
       setSuggestions([]);
     }
   };
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const response = await fetch(result.assets[0].uri)
+      const blob = await response.blob()
+
+      const storageRef = sref(firebase.storage, "actuaciones/" + actuacion.idActuacion)
+      const uploadTask = uploadBytesResumable(storageRef, blob)
+
+      uploadTask.on("state_changed", (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 0.1
+        console.log(snapshot.state, progress, uploading);
+
+        switch (snapshot.state) {
+					case "running":
+						setUploading(true);
+						setUploadProgress(progress.toFixed());
+					case "paused":
+            break;
+					case "success":
+            setUploading(false)
+            break;
+          case "canceled":
+            break;
+          case "error":
+            break;
+				}
+      },
+      (error) => {
+        console.log(error);
+      },
+      () => {getDownloadURL(uploadTask.snapshot.ref)
+        .then(async (downloadUrl) => {
+          const docref = firebase.db.collection("actuaciones").doc(actuacion.idActuacion)
+          setUploading(false)
+          await docref.set({...actuacion, coverImage: downloadUrl}).catch(error => console.log(error))
+        })
+      })
+    }
+  };
+
+  const handleModificarImagen = () => {
+    Alert.alert("Opciones", "Escoge la opción",
+      [
+        {
+          text: "Modificar",
+          onPress: () => pickImage()
+        },
+        {
+          text: "Eliminar",
+          onPress: () => Alert.alert("Esta acción no se puede revocar", "¿Estás seguro?",
+            [
+              {
+                text: "Sí",
+                onPress: () => {
+                  const storageRef = sref(firebase.storage, "actuaciones/" + actuacion.idActuacion)
+                  deleteObject(storageRef)
+
+                  const docref = firebase.db.collection("actuaciones").doc(actuacion.idActuacion)
+                  docref.update({coverImage: ""})
+                }
+              },
+              {
+                text: "No",
+                style: 'destructive',
+                onPress: () => console.log("No seleccionado")
+              }
+            ]
+          )
+        }
+      ]
+    )
+  }
+
+  const handleModificarConcepto = () => {
+    Alert.prompt("Modifica", "Introduce un concepto para la actuación",
+      [
+        {
+          text: "Cancelar",
+          onPress: () => console.log("Canceló")
+        },
+        {
+          text: "Modificar",
+          onPress: (response) => updateFieldInDocument("concepto", response)
+        }
+      ], "plain-text", actuacion.concepto
+    )
+  }
+
+  const updateFieldInDocument = (key, value) => {
+    const docref = firebase.db.collection("actuaciones").doc(actuacion.idActuacion)
+    docref.update({[key]: value})
+  }
+
+
+  const handleEditActuacionInfo = () => {
+    Alert.alert(
+      "Modificar",
+      "¿Qué elemento deseas modificar?",
+      [
+        {
+          text: "Concepto",
+          onPress: () => handleModificarConcepto()
+        },
+        {
+          text: "Organizador"
+        },
+        {
+          text: "Ubicación"
+        },
+        {
+          text: "Imagen",
+          onPress: () => handleModificarImagen()
+        },
+        {
+          text: "Cancelar",
+          style: 'destructive',
+          onPress: () => console.log("Cancelado")
+        }
+      ],
+    )
+  }
 
   // ----------------------------- VIEW -----------------------------
 
@@ -411,14 +558,17 @@ const actuacionDetail = (props) => {
           ) : (
             <></>
           )}
-
+          <View style={styles.info}>
           <View style={[styles.card, actuacion.isLive ? { borderColor: "#d0342c", borderWidth: 2 } : { backgroundColor: "white" }]} onTouchEnd={() => handleToggleSwitch(!actuacion.isLive)}>
+            {actuacion.coverImage ? <Image source={{ uri: actuacion.coverImage}} style={{width: 50, height: 50}} /> : <></>}
             <View style={styles.textGroup}>
               <Text>{actuacion.concepto}</Text>
               <Text>{new Date(actuacion.fecha.seconds * 1000).toLocaleString().toString().slice(0, -3)}</Text>
-              {connection ? <Badge status="success"></Badge> : <Badge status="error"></Badge>}
+              <Text>{actuacion.organizador1}</Text>
             </View>
-            <Text>{actuacion.organizador1}</Text>
+              {connection ? <Badge status="success"></Badge> : <Badge status="error"></Badge>}
+          </View>
+          <IconButton icon="pencil" style={[styles.buttonDate, {height: '100%', marginTop: 15}]} iconColor="white" onPress={() => handleEditActuacionInfo()}/>
           </View>
           <View>
             <View style={styles.inputs}>
@@ -527,7 +677,7 @@ const actuacionDetail = (props) => {
                           <IconButton
                             icon="pencil"
                             onPress={() => handleEdit(repertorio.idInterpretacion)}
-                            color="#0e606b"
+                            iconColor="#3D5A80"
                             style={styles.iconButtonActions}
                           />
                         </View>
@@ -556,6 +706,12 @@ const actuacionDetail = (props) => {
                 </View>
               </Fragment>
           )}
+          {uploading && (
+            <View style={styles.modalLoading}>
+              <ProgressBar progress={uploadProgress} color='blue' style={{marginHorizontal: 40, marginTop: 30}}/>
+            </View>
+          )}
+          
           <Button title={"Home"} onPress={handleHome} />
         </ScrollView>
       ) : (
@@ -583,6 +739,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   card: {
+    display: 'flex',
+    flex: 1,
+    flexDirection: 'row',
     backgroundColor: "#FFFFFF",
     padding: 10,
     margin: 10,
@@ -608,6 +767,14 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     height: 380,
     color: "#DDDDD",
+  },
+  editButton: {
+  },
+  info: {
+    display: 'flex',
+    flexDirection: 'row',
+    paddingRight: 5,
+    marginRight: 5,
   },
   inputs: {
     flex: 1,
@@ -640,6 +807,18 @@ const styles = StyleSheet.create({
     zIndex: 10000,
     paddingHorizontal: 10,
     paddingTop: 10,
+  },
+  modalLoading: {
+    position: 'absolute', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    alignItems: 'center',
+    paddingTop: 50,
+    flex: 1, 
+    height: '100%', 
+    width: '100%',
+    backgroundColor: 'black', 
+    opacity: 0.8
   },
   pressable: {
     backgroundColor: "white",
@@ -703,7 +882,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   textGroup: {
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "space-between",
   },
 });

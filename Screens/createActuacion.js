@@ -8,14 +8,18 @@ import {
   Switch,
   Text,
   KeyboardAvoidingView,
+  Image
 } from "react-native";
 import firebase from "../database/firebase";
 import DateTimePickerModal from "@react-native-community/datetimepicker";
-import { ActivityIndicator, SegmentedButtons } from 'react-native-paper'
+import { ActivityIndicator, SegmentedButtons, ProgressBar } from 'react-native-paper'
 import { tagsActuacion, tiposActuaciones } from "../database/constants";
 import { getDatabase, set, ref, onValue } from "firebase/database";
 import BUTTON from "./variables"
 import { Badge } from "react-native-elements";
+import * as ImagePicker from 'expo-image-picker'
+import { getDownloadURL, uploadBytesResumable } from "firebase/storage";
+import { ref as sref } from 'firebase/storage';
 
 const createActuacion = (props) => {
   const database = getDatabase();
@@ -23,6 +27,7 @@ const createActuacion = (props) => {
   const [organizadores, setOrganizadores] = useState([]);
   const [connection, setConnection] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   const [state, setState] = useState({
     concepto: "",
@@ -36,6 +41,7 @@ const createActuacion = (props) => {
     ubicacion: "",
     ciudad: "",
     tagActuacion: "",
+    coverImage: ""
   });
 
   useEffect(() => {
@@ -51,6 +57,22 @@ const createActuacion = (props) => {
       }
     });
   }, []);
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result.assets[0].uri);
+
+    if (!result.canceled) {
+      handleChangeText("coverImage", result.assets[0].uri)
+    }
+  };
 
   const getOrganizadores = () => {
     firebase.db
@@ -79,56 +101,102 @@ const createActuacion = (props) => {
   };
 
   const saveActuacion = async () => {
-    if (
-      state.concepto === "" ||
-      state.organizador1 === "" ||
-      state.tipoActuacion === "" ||
-      state.ubicacion === ""
-    ) {
-      alert("Hay campos sin rellenar");
-    } else {
-      try {
-        setLoading(true);
-        const actuacion = await firebase.db.collection("actuaciones").add({
-          data: null,
-        });
+		if (state.concepto === "" || state.organizador1 === "" || state.tipoActuacion === "" || state.ubicacion === "" || state.ciudad === "") {
+			alert("Hay campos sin rellenar");
+		} else {
+			try {
+				// Crear referencia a la actuación
+				const actuacion = await firebase.db.collection("actuaciones").add({
+					data: null
+				});
+				const id = actuacion.id;
 
-        const id = actuacion.id;
+				// Subida imagen cover
+				if (state.coverImage) {
+					const response = await fetch(state.coverImage);
+					const blob = await response.blob();
 
-        await firebase.db
-          .collection("actuaciones")
-          .doc(actuacion.id)
-          .set({
-            idRepertorio: id,
-            idActuacion: id,
-            concepto: state.concepto,
-            fecha: state.fecha,
-            isLive: state.isLive,
-            organizador1: state.organizador1,
-            organizador2: state.organizador2,
-            tipo: state.tipoActuacion,
-            ubicacion: state.ubicacion,
-            ciudad: state.ciudad,
-            tagActuacion: state.tagActuacion ? state.tagActuacion : null,
-          }).catch(error => {
-            console.log(state.fecha, error);
-          })
+					const storageRef = sref(firebase.storage, "actuaciones/" + id);
+					const uploadTask = uploadBytesResumable(storageRef, blob);
 
-        await set(ref(database, "repertorios/" + id), {});
+					uploadTask.on(
+						"state_changed",
+						(snapshot) => {
+							const progress = snapshot.bytesTransferred / snapshot.totalBytes;
+							switch (snapshot.state) {
+								case "running":
+									setLoading(true);
+									setUploadProgress(progress.toFixed());
+								case "paused":
+								case "success":
+								case "canceled":
+								case "error":
+							}
+						},
+						(error) => {
+							console.log(error.code);
+						},
+						() => {
+							getDownloadURL(uploadTask.snapshot.ref)
+								.then(async (downloadUrl) => {
+									firebase.db
+										.collection("actuaciones")
+										.doc(actuacion.id)
+										.set({
+											idRepertorio: id,
+											idActuacion: id,
+											concepto: state.concepto,
+											fecha: state.fecha,
+											isLive: state.isLive,
+											organizador1: state.organizador1,
+											organizador2: state.organizador2,
+											tipo: state.tipoActuacion,
+											ubicacion: state.ubicacion,
+											ciudad: state.ciudad,
+											tagActuacion: state.tagActuacion ? state.tagActuacion : null,
+											coverImage: downloadUrl
+										});
 
-        setState({ ...state, idRepertorio: id });
-        setLoading(false);
-        await props.navigation.navigate("actuacionDetail", { eventoId: id });
-      } catch (error) {
-        setLoading(false);
-        return (
-          <View>
-            <Text>ERROR</Text>
-          </View>
-        );
-      }
-    }
-  };
+									await set(ref(database, "repertorios/" + id), {});
+
+									setState({ ...state, idRepertorio: id });
+									setLoading(false);
+									await props.navigation.navigate("actuacionDetail", { eventoId: id });
+								})
+								.catch((error) => console.log(error));
+						}
+					);
+				} else {
+					firebase.db
+						.collection("actuaciones")
+						.doc(actuacion.id)
+						.set({
+							idRepertorio: id,
+							idActuacion: id,
+							concepto: state.concepto,
+							fecha: state.fecha,
+							isLive: state.isLive,
+							organizador1: state.organizador1,
+							organizador2: state.organizador2,
+							tipo: state.tipoActuacion,
+							ubicacion: state.ubicacion,
+							ciudad: state.ciudad,
+							tagActuacion: state.tagActuacion ? state.tagActuacion : null,
+							coverImage: ""
+						});
+
+					await set(ref(database, "repertorios/" + id), {});
+
+					setState({ ...state, idRepertorio: id });
+					setLoading(false);
+					await props.navigation.navigate("actuacionDetail", { eventoId: id });
+				}
+			} catch (error) {
+				setLoading(false);
+				console.log(error);
+			}
+		}
+	};
 
   return (
     <>
@@ -201,13 +269,16 @@ const createActuacion = (props) => {
               <View style={styles.inputGroup}>
                 <Text style={styles.textLabel}>Fecha</Text>
                 <DateTimePickerModal 
-                  style={styles.datePicker}
-                  display="inline"
                   mode="datetime"
                   value={state.fecha}
-                  textColor="#d03e3e"
+                  themeVariant="light"
                   onChange={(value) => handleChangeText('fecha', new Date(value.nativeEvent.timestamp))}
                 />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.textLabel}>Imagen cover</Text>
+                <Button title="Selecciona una imagen" onPress={pickImage}/>
+                {state.coverImage && <Image source={{ uri: state.coverImage }} style={styles.image} />}
               </View>
               <View style={styles.inputGroup}>
                 <Text style={styles.textLabel}>Ubicación</Text>
@@ -256,14 +327,17 @@ const createActuacion = (props) => {
               </View>
             </View>
           </ScrollView>
+          {/* {loading && (
+            <View style={styles.modalView}>
+              <Text style={{color: 'white', justifyContent: 'center'}}>Subiendo imagen</Text>
+              <ProgressBar progress={uploadProgress} color='white' style={{marginHorizontal: 40, marginTop: 30}}/>
+            </View>
+          )} */}
         </KeyboardAvoidingView>
       ) : (
-        <ActivityIndicator
-          animating={true}
-          color={BUTTON.background}
-          size={100}
-          style={{ padding: 0, margin: "50%" }}
-        ></ActivityIndicator>
+        <View style={styles.modalView}>
+          <ProgressBar progress={uploadProgress} color='white' style={{marginHorizontal: 40, marginTop: 30}}/>
+        </View>
       )}
     </>
   );
@@ -280,13 +354,6 @@ const styles = StyleSheet.create({
     padding: 35,
     padding: 20,
   },
-  datePicker: {
-    backgroundColor: "#2E3033",
-    marginHorizontal: 10,
-    marginVertical: 10,
-    height: 380,
-    color: "#DDDDD",
-  },
   inputGroup: {
     fontSize: 18,
     color: BUTTON.background,
@@ -295,6 +362,22 @@ const styles = StyleSheet.create({
     padding: 0,
     marginBottom: 7,
     borderBottomColor: "#cccccc",
+  },
+  image: {
+    width: 50,
+    height: 50,
+  },
+  modalView: {
+    position: 'absolute', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    alignItems: 'center',
+    paddingTop: 50,
+    flex: 1, 
+    height: '100%', 
+    width: '100%',
+    backgroundColor: 'black', 
+    opacity: 0.8
   },
   switch: {
     flexDirection: "row",

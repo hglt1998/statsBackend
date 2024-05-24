@@ -6,7 +6,6 @@ import {
   Text,
   RefreshControl,
   StyleSheet,
-  Pressable,
   Alert,
 } from "react-native";
 import firebase from "../database/firebase";
@@ -93,6 +92,8 @@ function events({ navigation }) {
           visible
           icon={'plus'}
           fabStyle={{backgroundColor: BUTTON.background}}
+          color="white"
+          label="Crear"
           actions={[
             {
               icon: 'music-note', onPress: () => navigation.navigate("createComposicion"), label: 'Composición', color: 'white', color: BUTTON.background, style: {backgroundColor: 'white'}
@@ -110,7 +111,7 @@ function events({ navigation }) {
 
       }
       
-
+      <Text style={{fontWeight: "bold", fontSize: 40, marginLeft: 5, paddingLeft: 30}}>Actuaciones</Text>
       {events.map((evento, index) => {
         const formatedDate = new Date(evento.fecha.seconds * 1000)
           .toLocaleString()
