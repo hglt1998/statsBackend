@@ -80,3 +80,8 @@ dist/
 /android/gradle.properties
 /android/app
 /android/app/build.gradle
+
+# Custom
+.env
+package-lock.json
+functions/package.json

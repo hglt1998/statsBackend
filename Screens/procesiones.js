@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import firebase from "../database/firebase";
 import { FAB, IconButton, Portal } from 'react-native-paper'
-import BUTTON from "./variables"
+import { COLORS } from "./variables"
 import { getDatabase, ref, set } from "firebase/database";
 import { useIsFocused } from "@react-navigation/native";
 
@@ -91,18 +91,18 @@ function events({ navigation }) {
           open={open}
           visible
           icon={'plus'}
-          fabStyle={{backgroundColor: BUTTON.background}}
+          fabStyle={{backgroundColor: COLORS.primary}}
           color="white"
           label="Crear"
           actions={[
             {
-              icon: 'music-note', onPress: () => navigation.navigate("createComposicion"), label: 'Composición', color: 'white', color: BUTTON.background, style: {backgroundColor: 'white'}
+              icon: 'music-note', onPress: () => navigation.navigate("createComposicion"), label: 'Composición', color: 'white', color: COLORS.primary, style: {backgroundColor: 'white'}
             },
             {
-              icon: 'account', onPress: () => navigation.navigate("createCompositor"), label: 'Compositor', color: BUTTON.background, style: {backgroundColor: 'white'}
+              icon: 'account', onPress: () => navigation.navigate("createCompositor"), label: 'Compositor', color: COLORS.primary, style: {backgroundColor: 'white'}
             },
             {
-              icon: 'file-document', onPress: () => navigation.navigate("createActuacion"), label: 'Actuación', color: 'white', color: BUTTON.background, style: {backgroundColor: 'white'}
+              icon: 'file-document', onPress: () => navigation.navigate("createActuacion"), label: 'Actuación', color: 'white', color: COLORS.primary, style: {backgroundColor: 'white'}
             },
           ]}
           onStateChange={onStateChange}
@@ -141,11 +141,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: 8,
     fontSize: 18,
-    color: BUTTON.text
+    color: COLORS.secondary
   },
   button: {
     padding: 5,
-    backgroundColor: BUTTON.background,
+    backgroundColor: COLORS.primary,
     padding: 5,
     margin: 5,
     borderRadius: 10,

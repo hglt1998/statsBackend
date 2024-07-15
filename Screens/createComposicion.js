@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import firebase from "../database/firebase";
-import BUTTON from "./variables"
+import {COLORS} from "./variables"
 
 const createComposicion = (props) => {
   const initialState = {
@@ -196,7 +196,7 @@ const createComposicion = (props) => {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: BUTTON.background,
+    backgroundColor: COLORS.primary,
     borderRadius: 5,
     marginVertical: 20,
     padding: 5,
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.27,
     shadowRadius: 4.65,
     elevation: 6,
-    borderColor: BUTTON.background,
+    borderColor: COLORS.primary,
     borderWidth: 0.5,
   },
   card: {
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   textLabel: {
     left: 5,
     marginVertical: 7,
-    color: BUTTON.background,
+    color: COLORS.primary,
   },
 });
 

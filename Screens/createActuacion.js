@@ -15,7 +15,7 @@ import DateTimePickerModal from "@react-native-community/datetimepicker";
 import { ActivityIndicator, SegmentedButtons, ProgressBar } from 'react-native-paper'
 import { tagsActuacion, tiposActuaciones } from "../database/constants";
 import { getDatabase, set, ref, onValue } from "firebase/database";
-import BUTTON from "./variables"
+import {COLORS} from "./variables"
 import { Badge } from "react-native-elements";
 import * as ImagePicker from 'expo-image-picker'
 import { getDownloadURL, uploadBytesResumable } from "firebase/storage";
@@ -346,7 +346,7 @@ const createActuacion = (props) => {
 const styles = StyleSheet.create({
   button: {
     marginRight: 0,
-    backgroundColor: BUTTON.background,
+    backgroundColor: COLORS.primary,
     borderRadius: 5,
   },
   container: {
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   },
   inputGroup: {
     fontSize: 18,
-    color: BUTTON.background,
+    color: COLORS.primary,
     textDecorationColor: "#000000",
     flex: 1,
     padding: 0,
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.27,
     shadowRadius: 4.65,
     elevation: 6,
-    borderColor: BUTTON.background,
+    borderColor: COLORS.primary,
     borderWidth: 0.5,
   },
   picker: {
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   textLabel: {
     left: 5,
     marginVertical: 7,
-    color: BUTTON.background,
+    color: COLORS.primary,
   },
 });
 

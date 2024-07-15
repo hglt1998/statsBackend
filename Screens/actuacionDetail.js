@@ -5,10 +5,10 @@ import { Button, ScrollView, Text, View, StyleSheet, TextInput, Alert, Dimension
 import firebase from "../database/firebase";
 import DateTimePickerModal from "@react-native-community/datetimepicker";
 import { Badge } from "react-native-elements";
-import BUTTON from "./variables";
+import {BUTTON} from "./variables";
 import { deleteObject, getDownloadURL, ref as sref, uploadBytesResumable } from 'firebase/storage';
 import * as ImagePicker from 'expo-image-picker'
-import { doc, onSnapshot } from "firebase/firestore";
+import * as ImageManipulator from 'expo-image-manipulator';
 
 const actuacionDetail = (props) => {
   // ----------------------------- STATES -----------------------------
@@ -359,50 +359,71 @@ const actuacionDetail = (props) => {
   };
 
   const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
     });
-
+  
     if (!result.canceled) {
-      const response = await fetch(result.assets[0].uri)
-      const blob = await response.blob()
-
-      const storageRef = sref(firebase.storage, "actuaciones/" + actuacion.idActuacion)
-      const uploadTask = uploadBytesResumable(storageRef, blob)
-
-      uploadTask.on("state_changed", (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 0.1
-        console.log(snapshot.state, progress, uploading);
-
-        switch (snapshot.state) {
-					case "running":
-						setUploading(true);
-						setUploadProgress(progress.toFixed());
-					case "paused":
-            break;
-					case "success":
+      // Comprimir la imagen
+      const manipResult = await ImageManipulator.manipulateAsync(
+        result.assets[0].uri,
+        [],
+        { compress: 0.7, format: ImageManipulator.SaveFormat.WEBP }
+      );
+  
+      // Convertir la imagen comprimida en un blob
+      const response = await fetch(manipResult.uri);
+      const blob = await response.blob();
+  
+      // Subir el blob a Firebase Storage
+      const storageRef = sref(firebase.storage, `actuaciones/${actuacion.idActuacion}`);
+      const uploadTask = uploadBytesResumable(storageRef, blob);
+  
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(snapshot.state, progress);
+          switch (snapshot.state) {
+            case 'running':
+              setUploading(true);
+              setUploadProgress(progress.toFixed());
+              break;
+            case 'paused':
+              setUploading(false)
+              alert('Se ha pausado la subida')
+              break;
+            case 'success':
+              setUploading(false);
+              alert('Imagen subida correctamente')
+              break;
+            case 'canceled':
+              setUploading(false)
+              alert('Se ha cancelado la subida')
+              break;
+            case 'error':
+              setUploading(false)
+              alert('Ha ocurrido un error inesperado')
+              break;
+          }
+          if (progress >= 100) {
             setUploading(false)
-            break;
-          case "canceled":
-            break;
-          case "error":
-            break;
-				}
-      },
-      (error) => {
-        console.log(error);
-      },
-      () => {getDownloadURL(uploadTask.snapshot.ref)
-        .then(async (downloadUrl) => {
-          const docref = firebase.db.collection("actuaciones").doc(actuacion.idActuacion)
-          setUploading(false)
-          await docref.set({...actuacion, coverImage: downloadUrl}).catch(error => console.log(error))
-        })
-      })
+            uploadTask.cancel()
+            return;
+          }
+        },
+        (error) => {
+          console.log(error);
+        },
+        async () => {
+          const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+          const docRef = firebase.db.collection('actuaciones').doc(actuacion.idActuacion)
+          await docRef.set({...actuacion, coverImage: downloadUrl}).catch((error) => console.log("Error"))
+        }
+      );
     }
   };
 
