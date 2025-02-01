@@ -6,6 +6,8 @@
     "orientation": "portrait",
     "jsEngine": "hermes",
     "icon": "./assets/ColorSinFondo.png",
+    "newArchEnabled": true,
+    "platforms": ["ios"],
     "splash": {
       "image": "./assets/ColorSinFondo.png",
       "resizeMode": "contain",
@@ -23,9 +25,6 @@
       "bundleIdentifier": "com.hglt1998.bmmstats",
       "jsEngine": "hermes",
       "runtimeVersion": "1.0.0"
-    },
-    "web": {
-      "favicon": "./assets/ColorSinFondo.png"
     },
     "extra": {
       "eas": {

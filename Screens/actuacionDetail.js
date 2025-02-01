@@ -31,7 +31,7 @@ const actuacionDetail = (props) => {
 		coverImage: ""
 	};
 
-	const idActuacion = props.route.params.info.idActuacion;
+	const idActuacion = props.route.params.info.eventoId;
 
 	const [interpretacion, setNuevaInterpretacion] = useState("");
 
