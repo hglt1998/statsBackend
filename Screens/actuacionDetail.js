@@ -1,12 +1,12 @@
 import { getDatabase, increment, onValue, ref, refFromURL, set, update } from "firebase/database";
 import React, { Fragment, useEffect, useState } from "react";
 import { ActivityIndicator, IconButton, ProgressBar } from "react-native-paper";
-import { Button, ScrollView, Text, View, StyleSheet, TextInput, Alert, Dimensions, Pressable, Image, StatusBar, KeyboardAvoidingView } from "react-native";
+import { Button, ScrollView, Text, View, StyleSheet, TextInput, Alert, Dimensions, Pressable, Image, StatusBar } from "react-native";
 import firebase from "../database/firebase";
 import DateTimePickerModal from "@react-native-community/datetimepicker";
 import { Badge } from "react-native-elements";
 import { BUTTON } from "./variables";
-import { deleteObject, getDownloadURL, ref as sref, uploadBytes, uploadBytesResumable } from "firebase/storage";
+import { deleteObject, getDownloadURL, ref as sref, uploadBytesResumable } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import defaultImage from "../assets/actuacion-cover.webp";
@@ -31,7 +31,7 @@ const actuacionDetail = (props) => {
 		coverImage: ""
 	};
 
-	const idActuacion = props.route.params.info.eventoId;
+	const idActuacion = props.route.params.eventoId;
 
 	const [interpretacion, setNuevaInterpretacion] = useState("");
 
@@ -57,10 +57,6 @@ const actuacionDetail = (props) => {
 
 	const [showTwitInput, setshowTwitInput] = useState(false);
 
-	const [twitInput, setTwitInput] = useState("");
-
-	const [twitTime, setTwitTime] = useState(new Date());
-
 	const [uploading, setUploading] = useState(false);
 
 	const [uploadProgress, setUploadProgress] = useState(0);
@@ -70,7 +66,7 @@ const actuacionDetail = (props) => {
 	// ----------------------------- USEEFFECT -----------------------------
 	useEffect(() => {
 		StatusBar.setBarStyle("light-content");
-		getActuacionByID(props.route.params.info);
+		getActuacionByID(idActuacion);
 		loadData();
 		loadComposiciones();
 
@@ -250,8 +246,14 @@ const actuacionDetail = (props) => {
 
 	// ----------------------------- GETTERS -----------------------------
 
-	const getActuacionByID = (details) => {
-		setActuacion({ ...details });
+	const getActuacionByID = async (id) => {
+		firebase.db
+			.collection("actuaciones")
+			.doc(id)
+			.onSnapshot((doc) => {
+				const actuacion = doc.data();
+				setActuacion({ ...actuacion, idActuacion: id, idRepertorio: id });
+			});
 	};
 
 	const loadData = () => {
@@ -617,7 +619,7 @@ const actuacionDetail = (props) => {
 												}
 											]}
 										>
-											<Text>{repertorio.url.slice(27)}</Text>
+											<Text>{repertorio.url}</Text>
 											<IconButton style={{ right: 0 }} icon="delete-off" onPress={() => handleDeleteTwit(repertorio.idInterpretacion)} />
 										</View>
 									);

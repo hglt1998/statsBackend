@@ -22,7 +22,7 @@ function events({ navigation }) {
 	};
 
 	const handleNavigate = (evento) => {
-		navigation.navigate("actuacionDetail", { eventoId: evento.id, info: evento });
+		navigation.navigate("actuacionDetail", { eventoId: evento.idActuacion, info: evento });
 	};
 
 	useEffect(() => {
