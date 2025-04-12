@@ -1,7 +1,7 @@
 import { getDatabase, increment, onValue, ref, refFromURL, set, update } from "firebase/database";
 import React, { Fragment, useEffect, useState } from "react";
 import { ActivityIndicator, IconButton, ProgressBar } from "react-native-paper";
-import { Button, ScrollView, Text, View, StyleSheet, TextInput, Alert, Dimensions, Pressable, Image, StatusBar } from "react-native";
+import { Button, ScrollView, Text, View, StyleSheet, TextInput, Alert, Dimensions, Pressable, Image, StatusBar, Modal, InputAccessoryView } from "react-native";
 import firebase from "../database/firebase";
 import DateTimePickerModal from "@react-native-community/datetimepicker";
 import { Badge } from "react-native-elements";
@@ -13,6 +13,7 @@ import defaultImage from "../assets/actuacion-cover.webp";
 import ModalExternalComposition from "../componentes/ModalExternalComposition";
 import { addNewExternalComposicion } from "../services/ActuacionesService";
 import ModalTwit from "../componentes/ModalTwit";
+import { useNavigation } from "@react-navigation/native";
 
 const actuacionDetail = (props) => {
 	// ----------------------------- STATES -----------------------------
@@ -299,7 +300,7 @@ const actuacionDetail = (props) => {
 
 	const handleModalInput = (value) => {
 		if (value.length > 3) {
-			setSuggestions(listado.filter((marcha) => marcha.titulo.toLowerCase().includes(value)));
+			setSuggestions(listado.filter((marcha) => marcha.titulo.toLowerCase().includes(value.toLowerCase())));
 		} else {
 			setSuggestions([]);
 		}
@@ -452,7 +453,7 @@ const actuacionDetail = (props) => {
 			{actuacion.concepto ? (
 				<ScrollView keyboardShouldPersistTaps="never" style={styles.container}>
 					{searchVisible && (
-						<View style={styles.modalView}>
+						<Modal presentationStyle="pageSheet" animationType="slide" visible={searchVisible}>
 							<IconButton
 								icon="close"
 								style={{ backgroundColor: "white", alignSelf: "flex-end" }}
@@ -461,29 +462,33 @@ const actuacionDetail = (props) => {
 									setSuggestions([]);
 								}}
 							/>
-							<TextInput onChangeText={(value) => handleModalInput(value)} style={styles.modalInput} autoFocus={true} placeholder="Nombre" autoCapitalize="none" autoCorrect={false}></TextInput>
-							{suggestions.length >= 1 && (
-								<View style={styles.suggestionsGrid}>
-									{suggestions.map((marcha) => {
-										return (
-											<Pressable
-												style={styles.pressable}
-												key={marcha.idComposicion}
-												onPress={() => {
-													setNuevaInterpretacion(marcha.idFirebase);
-													setDatosComposicion(marcha.idFirebase);
-													setsearchVisible(false);
-												}}
-											>
-												<Text numberOfLines={1}>{marcha.titulo}</Text>
-												<Text>{marcha.compositor}</Text>
-												<Text>{marcha.idComposicion}</Text>
-											</Pressable>
-										);
-									})}
-								</View>
-							)}
-						</View>
+							<TextInput
+								placeholder="Nombre de la composición"
+								style={{ backgroundColor: "#76768012", margin: 20, padding: 8, color: "black", fontSize: 16, borderColor: "#767680", borderRadius: 8 }}
+								clearButtonMode="while-editing"
+								onChangeText={(value) => handleModalInput(value)}
+								autoFocus
+							/>
+							{suggestions.length >= 1 &&
+								suggestions.map((marcha) => {
+									return (
+										<Pressable
+											key={marcha.idComposicion}
+											style={{ marginHorizontal: 20, marginVertical: 10, borderBottomColor: "#767680", borderBottomWidth: StyleSheet.hairlineWidth, paddingBottom: 15 }}
+											onPress={() => {
+												setNuevaInterpretacion(marcha.idFirebase);
+												setDatosComposicion(marcha.idFirebase);
+												setsearchVisible(false);
+												setSuggestions([]);
+											}}
+										>
+											<Text style={{ fontSize: 16 }}>
+												{marcha.idComposicion} {marcha.titulo} | {marcha.compositor}
+											</Text>
+										</Pressable>
+									);
+								})}
+						</Modal>
 					)}
 					<ModalTwit visible={showTwitInput} setshowTwitInput={handleShowTwitInput} idActuacion={idActuacion} />
 					<ModalExternalComposition isVisible={showModalExternalComposicion} onClose={handleShowExternalComposicion} response={handleExternalComposicionResponse} />
@@ -715,8 +720,8 @@ const styles = StyleSheet.create({
 		width: Dimensions.get("window").width,
 		height: Dimensions.get("window").height,
 		justifyContent: "flex-start",
-		zIndex: 10000,
-		paddingHorizontal: 60,
+		zIndex: 1,
+		paddingHorizontal: 20,
 		paddingTop: 80
 	},
 	modalInput: {
@@ -724,7 +729,6 @@ const styles = StyleSheet.create({
 		backgroundColor: "white",
 		paddingVertical: 5,
 		borderRadius: 5,
-		height: 40,
 		paddingLeft: 5,
 		marginRight: 5
 	},
@@ -733,7 +737,8 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		alignItems: "center",
 		paddingHorizontal: 15,
-		borderRadius: 5
+		borderRadius: 5,
+		zIndex: 20
 	},
 	modalLoading: {
 		position: "absolute",
