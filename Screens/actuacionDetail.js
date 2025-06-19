@@ -468,6 +468,7 @@ const actuacionDetail = (props) => {
 								clearButtonMode="while-editing"
 								onChangeText={(value) => handleModalInput(value)}
 								autoFocus
+								autoCorrect={false}
 							/>
 							{suggestions.length >= 1 &&
 								suggestions.map((marcha) => {
